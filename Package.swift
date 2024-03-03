@@ -4,14 +4,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-foundation-extensions",
+    name: "swift-foundation-extras",
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "FoundationExtensions",
+            name: "FoundationExtras",
             targets: [
-                "FoundationExtensions",
+                "FoundationExtras",
                 "Persistence"
             ]
         ),
@@ -32,15 +32,15 @@ let package = Package(
             ]
         ),
         .target(
-            name: "FoundationExtensions",
+            name: "FoundationExtras",
             dependencies: [
                 .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras")
             ]
         ),
         .testTarget(
-            name: "FoundationExtensionTests",
-            dependencies: ["FoundationExtensions"]
+            name: "FoundationExtrasTests",
+            dependencies: ["FoundationExtras"]
         ),
     ]
 )
