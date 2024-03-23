@@ -1,8 +1,7 @@
 //
 //  FileSystemAccessor.swift
 //
-//
-//  Created by Paavo Becker on 25.08.23.
+//  Copyright © 2023 Paavo Becker.
 //
 
 import Foundation
@@ -12,28 +11,28 @@ import Foundation
 public struct FileSystemAccessor {
     /// Returns the contents of a folder
     public var contentsOfDirectory: (URL) throws -> [URL]
-    
+
     /// Creates a folder at the given url
     public var createDirectory: (URL) throws -> Void
-    
+
     /// Checks if file or folder exists
     public var fileExists: (URL) -> Bool
-    
+
     /// Checks if the url points to a directory
     public var isDirectory: (URL) -> Bool
-    
+
     /// Reads file at the given url from the file system
     public var read: (URL) throws -> Data
-    
+
     /// Romoves file or folder at the given url from the file system
     public var remove: (URL) throws -> Void
-    
+
     /// Writes data to the given url
     public var write: (Data, URL) throws -> Void
-    
+
     /// Copies file at first URL to second URL
     public var copy: (URL, URL) throws -> Void
-    
+
     /// Erzeugt einen FileSystemAccessor
     /// - Parameters:
     ///   - contentsOfDirectory: Returns the contents of a folder
@@ -62,7 +61,7 @@ public struct FileSystemAccessor {
         self.write = write
         self.copy = copy
     }
-    
+
     /// A ``FileSystemAccessor`` that is based on a ``FileManager``
     ///
     /// - Parameter fileManager: The filemanager to use, defaults to  ``FileManager.default``

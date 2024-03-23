@@ -7,12 +7,13 @@ let package = Package(
     name: "swift-foundation-extras",
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
+        // Products define the executables and libraries a package produces, making them visible to
+        // other packages.
         .library(
             name: "FoundationExtras",
             targets: [
                 "FoundationExtras",
-                "Persistence"
+                "Persistence",
             ]
         ),
     ],
@@ -28,14 +29,14 @@ let package = Package(
             name: "Persistence",
             dependencies: [
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
-                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
             ]
         ),
         .target(
             name: "FoundationExtras",
             dependencies: [
                 .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras")
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
             ]
         ),
         .testTarget(

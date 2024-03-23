@@ -1,11 +1,12 @@
 //
 //  FileCache.swift
 //
-//
-//  Created by Paavo Becker on 31.07.22.
+//  Copyright © 2023 Paavo Becker.
 //
 
 import Foundation
+
+// MARK: - FileCache
 
 /// A cache that stores its values to the file system
 ///
@@ -19,7 +20,7 @@ import Foundation
 public final class FileCache<Key: Hashable & Codable, Value: Codable> {
     private let config: Config
     private let id: UUID
-    
+
     /// Creates a ``FileCache``
     ///
     /// The cache itself requires a unique id. If another cache with the same id is used, then these
@@ -34,34 +35,36 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
         initialValues: [Key: Value] = [:],
         id: UUID,
         config: Config
-    ) throws {
+    )
+        throws
+    {
         self.config = config
         self.id = id
-        
+
         // Creates a cache folder if required
         try self.makeCacheDirectoryIfRequired(id: id)
-        
+
         try initialValues.forEach { key, value in
             try self.insert(value, forKey: key)
         }
     }
-    
+
     private func makeUrl(for key: Key) -> URL {
         self.urlToCacheDirectory.appendingPathComponent("\(key.hashValue)")
     }
-    
+
     private func entry(forKey key: Key) -> Entry? {
         let url = self.makeUrl(for: key)
         return self.entry(forUrl: url)
     }
-    
+
     private func entry(forUrl url: URL) -> Entry? {
         guard let data = try? self.config.fileSystemAccessor.read(url) else {
             return nil
         }
         return try? self.config.decode(data)
     }
-    
+
     private func makeCacheDirectoryIfRequired(id: UUID) throws {
         // Check if the cache folder exists
         if self.config.fileSystemAccessor.fileExists(self.urlToCacheDirectory) {
@@ -71,10 +74,10 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
             }
         } else {
             // Create cache folder
-            try config.fileSystemAccessor.createDirectory(self.urlToCacheDirectory)
+            try self.config.fileSystemAccessor.createDirectory(self.urlToCacheDirectory)
         }
     }
-    
+
     private var urlToCacheDirectory: URL {
         if #available(iOS 16, *) {
             return self.config.url.appending(path: self.id.uuidString)
@@ -84,68 +87,72 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
     }
 }
 
+// MARK: Cache
+
 extension FileCache: Cache {
     public var content: [Key: Value] {
         // Make sure that empty dictionary gets retured when path to cache does not exist
         guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
             return [:]
         }
-        
-        guard let urls = try? self.config.fileSystemAccessor.contentsOfDirectory(
-            self.urlToCacheDirectory
-        ) else {
+
+        guard
+            let urls = try? self.config.fileSystemAccessor.contentsOfDirectory(
+                self.urlToCacheDirectory
+            ) else
+        {
             return [:]
         }
-        
+
         let content: [Key: Value] = urls.reduce(into: [:]) { partialResult, url in
             guard let entry = self.entry(forUrl: url) else {
                 return
             }
-            
+
             partialResult[entry.key] = entry.value
         }
-        
+
         return content
     }
-    
+
     public func clear() {
         // Make sure that clearing of cache is ignored when path do cache is not a folder
         guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
             return
         }
-        
+
         try? self.config.fileSystemAccessor.remove(self.urlToCacheDirectory)
     }
-    
+
     public func insert(_ value: Value, forKey key: Key) throws {
         let data = try config.encode(Entry(key: key, value: value))
         let url = self.makeUrl(for: key)
-        
+
         // Create cache folder if necessary
-        try self.makeCacheDirectoryIfRequired(id: id)
-        
+        try self.makeCacheDirectoryIfRequired(id: self.id)
+
         // Prior to writing to the cache, there is no check if the file exists already. That means
         // that the old content will be replaced with the new content
         try self.config.fileSystemAccessor.write(data, url)
     }
-    
+
     public func value(forKey key: Key) -> Value? {
         return self.entry(forKey: key)?.value
     }
-    
+
     public func removeValue(forKey key: Key) {
         let url = self.makeUrl(for: key)
-        
+
         // Make sure that removal is ignored when path to cache is not a folder
         guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
             return
         }
-        
+
         // Make sure that removal is ignored when file does not exist
         guard self.config.fileSystemAccessor.fileExists(url) else {
             return
         }
-        
+
         try? self.config.fileSystemAccessor.remove(url)
     }
 }
@@ -156,7 +163,7 @@ extension FileCache {
     public final class Entry: Codable {
         let key: Key
         let value: Value
-        
+
         /// Erzeugt Entry Wrapper
         /// - Parameters:
         ///   - key: Key des Werts
@@ -166,21 +173,21 @@ extension FileCache {
             self.value = value
         }
     }
-    
+
     /// Configuration of the ``FileCache``
     public struct Config {
         /// Location where the cache should be placed on the file system
         let url: URL
-        
+
         /// Encoder to encode cache entry into ``Data`` object
         let encode: (Entry) throws -> Data
-        
+
         /// Decoder to decode data object into cache entiry
         let decode: (Data) throws -> Entry
-        
+
         /// A file system accessor
         let fileSystemAccessor: FileSystemAccessor
-        
+
         /// Creates a conficuration for the ``FileCache``
         /// - Parameters:
         ///   - url: Location where the cache should be placed on the file system
@@ -198,7 +205,7 @@ extension FileCache {
             self.decode = decode
             self.fileSystemAccessor = fileSystemAccessor
         }
-        
+
         /// A default configuration with sensible defaults.
         public static func `default`(
             fileSystemAccessor: FileSystemAccessor = .default()
@@ -211,7 +218,7 @@ extension FileCache {
             )
         }
     }
-    
+
     enum FileCacheError: Error {
         case invalidCacheIdFileWithEqualNameAlreadyExists
     }

@@ -1,17 +1,16 @@
 //
 //  FileManager.swift
-//  groceries-client-ios
 //
-//  Created by Paavo Becker on 01.08.22.
+//  Copyright © 2022 Paavo Becker.
 //
 
 import Foundation
 
-public extension FileManager {
+extension FileManager {
     /// Returns true if the given path points to a directory
     /// - Parameter path: The path to check
     /// - Returns: True if path points to directory
-    func directoryExists(atPath path: String) -> Bool {
+    public func directoryExists(atPath path: String) -> Bool {
         var isDirectory = ObjCBool(true)
         let exists = self.fileExists(atPath: path, isDirectory: &isDirectory)
         return exists && isDirectory.boolValue

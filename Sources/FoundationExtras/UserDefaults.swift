@@ -1,18 +1,17 @@
 //
 //  UserDefaults.swift
-//  groceries-client-ios
 //
-//  Created by Paavo Becker on 17.02.22.
+//  Copyright © 2022 Paavo Becker.
 //
 
 import Foundation
 
-public extension UserDefaults {
+extension UserDefaults {
     /// Returns the given type from user defaults
     ///
     /// - Parameter key: Unique key
     /// - Returns: Value if present, otherwise nil
-    func get<T: Decodable>(
+    public func get<T: Decodable>(
         for key: String
     ) -> T? {
         guard let data = data(forKey: key) else {
@@ -20,13 +19,13 @@ public extension UserDefaults {
         }
         return try? JSONDecoder().decode(T.self, from: data)
     }
-    
+
     /// Returns the given type from user defaults
     ///
     /// - Parameter key: Unique key
     /// - Parameter default: Default value
     /// - Returns: Value if present, otherwise default value
-    func get<T: Decodable>(
+    public func get<T: Decodable>(
         for key: String,
         default: T
     ) -> T {
@@ -38,7 +37,7 @@ public extension UserDefaults {
     /// - Parameter value: Value to store, needs to be codable
     /// - Parameter key: Unique key
     ///
-    func set<T: Encodable>(_ value: T, for key: String) {
+    public func set<T: Encodable>(_ value: T, for key: String) {
         let encoded = try? JSONEncoder().encode(value)
         setValue(encoded, forKey: key)
     }

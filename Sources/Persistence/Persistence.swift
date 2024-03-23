@@ -1,8 +1,7 @@
 //
 //  Persistence.swift
 //
-//
-//  Created by Paavo Becker on 27.08.23.
+//  Copyright © 2023 Paavo Becker.
 //
 
 import Foundation

@@ -1,13 +1,14 @@
 //
 //  FileStorage.swift
 //
-//
-//  Created by Paavo Becker on 31.07.22.
+//  Copyright © 2022 Paavo Becker.
 //
 
-import Foundation
 import AsyncAlgorithms
 import ConcurrencyExtras
+import Foundation
+
+// MARK: - FileStorage
 
 /// A ``Storage`` implementation that stores to the filesystem. The storage can handle one
 /// particular type of values which need to be codable.
@@ -17,12 +18,12 @@ import ConcurrencyExtras
 public class FileStorage<Value: Codable> {
     /// The configuration of the file storage.
     public let config: Config
-    
+
     /// Manager that handles all observers of this file storage.
     private let observerManager: ObserverManager
-    
+
     // MARK: - Init
-    
+
     /// Creates a FileStorage
     /// - Parameter config: The configuration of the FileStorage
     public init(
@@ -33,6 +34,8 @@ public class FileStorage<Value: Codable> {
     }
 }
 
+// MARK: Storage
+
 extension FileStorage: Storage {
     public func create(
         name: String,
@@ -42,47 +45,47 @@ extension FileStorage: Storage {
         guard !self.config.fileSystemAccessor.fileExists(fileUrl) else {
             throw Error.fileAlreadyExists
         }
-        
+
         // Create url without filename component
         let folderUrl = fileUrl.deletingLastPathComponent()
-        
+
         // Check if target directory exists
         if !self.config.fileSystemAccessor.isDirectory(folderUrl) {
             // Create target directory that holds the values of this FileStorage
             try self.config.fileSystemAccessor.createDirectory(folderUrl)
         }
-        
+
         logger.info("Writing \(Value.self) to \(fileUrl)")
-        
+
         // Encode and write value
         try self.config.encode(value).write(to: fileUrl)
     }
-    
+
     public func delete(
         name: String
     ) throws {
         let url = try self.makeURL(for: name)
-        
+
         // Deletion is gracefully ignored if file or directory does not exist
         guard self.config.fileSystemAccessor.fileExists(url) else {
             return
         }
-        
+
         logger.info("Deleting \(Value.self) \(url)")
-        
+
         try self.config.fileSystemAccessor.remove(url)
     }
-    
+
     public func delete() throws {
         guard self.config.fileSystemAccessor.fileExists(self.config.url) else {
             return
         }
-        
+
         logger.info("Deleting directory \(self.config.url)")
-        
+
         try self.config.fileSystemAccessor.remove(self.config.url)
     }
-    
+
     public func observe<Element: Equatable>(
         keyPath: KeyPath<Value, Element>
     ) -> AsyncStream<StorageEvent<Element>> {
@@ -90,7 +93,7 @@ extension FileStorage: Storage {
             // Register termination action. This ensures that the observation gets removed
             // automatically when the callsite drops the returned stream.
             continuation.onTermination = { _ in self.observerManager.remove(keyPath: keyPath) }
-            
+
             // Add observer
             self.observerManager.add(
                 keyPath: keyPath,
@@ -99,30 +102,31 @@ extension FileStorage: Storage {
             )
         }
     }
-    
+
     public func read(
         name: String
-    ) throws -> Value {
+    )
+    throws -> Value {
         let url = try self.makeURL(for: name)
-        
+
         logger.info("Reading \(Value.self) from \(url)")
-        
+
         return try self.config.decode(self.read(url: url))
     }
-    
+
     public func read() throws -> [Value] {
         // Make sure that the target directory exists, otherwise return empty array
         guard self.config.fileSystemAccessor.fileExists(self.config.url) else {
             return []
         }
-        
+
         // Read in all files from target directory and filter out the contained directories
         let urls = try self.config.fileSystemAccessor
             .contentsOfDirectory(self.config.url)
             .filter { !self.config.fileSystemAccessor.isDirectory($0) }
-        
+
         logger.info("Reading \(Value.self)'s from \(self.config.url)")
-        
+
         // Read in all files and try to decode them. If decoding fails, the file will be gracefully
         // ignored and not returned in the output of this function
         return try urls.compactMap { url in
@@ -130,68 +134,73 @@ extension FileStorage: Storage {
             return try? self.config.decode(data)
         }
     }
-    
+
     public func update(
         name: String,
         value: Value
-    ) throws {
+    )
+    throws {
         let url = try self.makeURL(for: name)
-        
+
         if self.config.fileSystemAccessor.fileExists(url) {
             // Remember the previous value.
             let prev = try self.read(name: name)
-            
+
             // Update stored value to the new value.
             try self.delete(name: name)
             try self.create(name: name, value: value)
-            
+
             // Notify observers.
             self.observerManager.notify(prev: prev, next: value)
         } else {
             try self.create(name: name, value: value)
         }
     }
-    
+
     // MARK: - Private
-    
+
     /// Create url
     ///
     /// - Parameter fileName: Name of file
     /// - Parameter dirName: Name of directory inside documents folder
     private func makeURL(
         for name: String
-    ) throws -> URL {
+    )
+    throws -> URL {
         return self.config.url.appendingPathComponent(name)
     }
-    
+
     /// Reads specific data from filesystem
     ///
     /// - Parameter url: URL to file
     /// - returns: Data object of file
     private func read(
         url: URL
-    ) throws -> Data {
+    )
+    throws -> Data {
         guard self.config.fileSystemAccessor.fileExists(url) else {
             throw Error.fileDoesNotExist
         }
-        
+
         return try Data(contentsOf: url)
     }
 }
+
+// MARK: FileStorage.Config
 
 extension FileStorage {
     public struct Config {
         /// A file system accessor
         let fileSystemAccessor: FileSystemAccessor
-        
+
         /// The url to use for file storage
         public let url: URL
-        
+
         let decode: (Data) throws -> Value
         let encode: (Value) throws -> Data
-        
+
         // MARK: - Init
-        
+
         /// Creates a FileStorage
         /// - Parameters:
         ///   - url: The url where the files of this storage should be stored at
@@ -203,7 +212,10 @@ extension FileStorage {
         public init(
             url: URL = URL.documentsDirectory,
             encode: @escaping (Value) throws -> Data = { try JSONEncoder().encode($0) },
-            decode: @escaping (Data) throws -> Value = { try JSONDecoder().decode(Value.self, from: $0) },
+            decode: @escaping (Data) throws -> Value = { try JSONDecoder().decode(
+                Value.self,
+                from: $0
+            ) },
             fileSystemAccessor: FileSystemAccessor = .default()
         ) {
             self.url = url
@@ -211,13 +223,15 @@ extension FileStorage {
             self.encode = encode
             self.fileSystemAccessor = fileSystemAccessor
         }
-        
+
         /// A default configuration with sensible defaults.
         public static var `default`: Self {
             Self()
         }
     }
 }
+
+// MARK: FileStorage.Error
 
 extension FileStorage {
     enum Error: Swift.Error {

@@ -1,15 +1,18 @@
 //
 //  MemoryCache.swift
 //
-//
-//  Created by Paavo Becker on 31.07.22.
+//  Copyright © 2023 Paavo Becker.
 //
 
 import Foundation
 
+// MARK: - NSCache + Sendable
+
 /// This extension should be save, since Appls explicitly mentions the thread safety of ``NSCache``
 /// in its documentaion.
 extension NSCache: @unchecked Sendable {}
+
+// MARK: - MemoryCache
 
 /// A cache that places its elements in the main memory
 ///
@@ -22,38 +25,40 @@ extension NSCache: @unchecked Sendable {}
 public final class MemoryCache<Key: Hashable, Value> {
     private let cache: NSCache<WrappedKey, Entry>
     private let keyTracker: KeyTracker
-    
+
     /// Creates a volatile cache that holds its values in memory
     ///
     /// - Parameter initialValues: Dictionary with initial content. Defaults to empty dictionary
     public init(initialValues: [Key: Value] = [:]) {
         self.cache = NSCache()
         self.keyTracker = KeyTracker()
-        
+
         self.cache.delegate = self.keyTracker
-        
+
         // Insert initial values into the cache
         initialValues.forEach { key, value in
             self.insert(value, forKey: key)
         }
     }
-    
+
     private func entry(forKey key: Key) -> Entry? {
         self.cache.object(forKey: WrappedKey(key))
     }
 }
 
+// MARK: Cache
+
 extension MemoryCache: Cache {
     public var content: [Key: Value] {
         self.keyTracker.all
             .compactMap { self.entry(forKey: $0) }
-            .reduce(into: [:], { $0[$1.key] = $1.value })
+            .reduce(into: [:]) { $0[$1.key] = $1.value }
     }
-    
+
     public func clear() {
         self.cache.removeAllObjects()
     }
-    
+
     public func insert(_ value: Value, forKey key: Key) {
         let entry = Entry(key: key, value: value)
         self.cache.setObject(entry, forKey: WrappedKey(key))
@@ -72,35 +77,35 @@ extension MemoryCache: Cache {
 extension MemoryCache {
     final class WrappedKey: NSObject {
         let key: Key
-        
+
         init(_ key: Key) { self.key = key }
-        
-        override var hash: Int { return key.hashValue }
-        
+
+        override var hash: Int { return self.key.hashValue }
+
         override func isEqual(_ object: Any?) -> Bool {
             guard let value = object as? WrappedKey else {
                 return false
             }
-            
-            return value.key == key
+
+            return value.key == self.key
         }
     }
-    
+
     final class Entry {
         let key: Key
         let value: Value
-        
+
         init(key: Key, value: Value) {
             self.key = key
             self.value = value
         }
     }
-    
+
     final class KeyTracker: NSObject, NSCacheDelegate {
         private var keys = Set<Key>()
-        
+
         var all: Set<Key> {
-            keys
+            self.keys
         }
 
         func cache(
@@ -110,10 +115,10 @@ extension MemoryCache {
             guard let entry = object as? Entry else {
                 return
             }
-            
-            keys.remove(entry.key)
+
+            self.keys.remove(entry.key)
         }
-        
+
         func insert(key: Key) {
             self.keys.insert(key)
         }
