@@ -9,13 +9,8 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to
         // other packages.
-        .library(
-            name: "FoundationExtras",
-            targets: [
-                "FoundationExtras",
-                "Persistence",
-            ]
-        ),
+        .library(name: "FoundationExtras", targets: ["FoundationExtras"]),
+        .library(name: "Persistence", targets: ["Persistence"]),
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay.git", from: "1.0.0"),
@@ -41,7 +36,15 @@ let package = Package(
         ),
         .testTarget(
             name: "FoundationExtrasTests",
-            dependencies: ["FoundationExtras"]
+            dependencies: [
+                .target(name: "FoundationExtras")
+            ]
         ),
+        .testTarget(
+            name: "PersistenceTests",
+            dependencies: [
+                .target(name: "Persistence")
+            ]
+        )
     ]
 )
