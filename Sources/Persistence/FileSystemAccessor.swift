@@ -10,28 +10,28 @@ import Foundation
 /// allows for definitions of file based components without a dependency on a concrete FileManager.
 public struct FileSystemAccessor {
     /// Returns the contents of a folder
-    public var contentsOfDirectory: (URL) throws -> [URL]
+    public private(set) var contentsOfDirectory: (URL) throws -> [URL]
 
     /// Creates a folder at the given url
-    public var createDirectory: (URL) throws -> Void
+    public private(set) var createDirectory: (URL) throws -> Void
 
     /// Checks if file or folder exists
-    public var fileExists: (URL) -> Bool
+    public private(set) var fileExists: (URL) -> Bool
 
     /// Checks if the url points to a directory
-    public var isDirectory: (URL) -> Bool
+    public private(set) var isDirectory: (URL) -> Bool
 
     /// Reads file at the given url from the file system
-    public var read: (URL) throws -> Data
+    public private(set) var read: (URL) throws -> Data
 
     /// Romoves file or folder at the given url from the file system
-    public var remove: (URL) throws -> Void
+    public private(set) var remove: (URL) throws -> Void
 
     /// Writes data to the given url
-    public var write: (Data, URL) throws -> Void
+    public private(set) var write: (Data, URL) throws -> Void
 
     /// Copies file at first URL to second URL
-    public var copy: (URL, URL) throws -> Void
+    public private(set) var copy: (URL, URL) throws -> Void
 
     /// Erzeugt einen FileSystemAccessor
     /// - Parameters:
@@ -67,19 +67,6 @@ public struct FileSystemAccessor {
     /// - Parameter fileManager: The filemanager to use, defaults to  ``FileManager.default``
     /// - Returns: FileSystemAccessor
     public static func `default`(fileManager: FileManager = .default) -> Self {
-        FileSystemAccessor(
-            contentsOfDirectory: { url in
-                try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
-            },
-            createDirectory: { url in
-                try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
-            },
-            fileExists: { fileManager.fileExists(atPath: $0.path()) },
-            isDirectory: { fileManager.directoryExists(atPath: $0.path()) },
-            read: { try Data(contentsOf: $0) },
-            remove: { try fileManager.removeItem(at: $0) },
-            write: { try $0.write(to: $1) },
-            copy: { try fileManager.copyItem(at: $0, to: $1) }
-        )
+        FileSystemAccessorBuilder(fileManager: fileManager).build()
     }
 }

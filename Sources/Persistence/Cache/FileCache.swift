@@ -21,11 +21,14 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
     private let config: Config
     private let id: UUID
 
-    /// Creates a ``FileCache``
+    /// Creates a ``FileCache``.
     ///
-    /// The cache itself requires a unique id. If another cache with the same id is used, then these
-    /// caches will share their storages. This allows to restore a cache across multiple launches
-    /// of the application.
+    /// The cache itself requires a unique id. Reusing an id, will reuse the storage, that was used
+    /// when previously. This allows to restore a cache content across multiple launches of the
+    /// application.
+    ///
+    /// - Warning: Creating multiple FileCache instances with the same id simultaneously should be
+    /// avoided.
     ///
     /// - Parameters:
     ///   - initialValues: Dictionary with initial content. Defaults to empty dictionary
@@ -177,16 +180,16 @@ extension FileCache {
     /// Configuration of the ``FileCache``
     public struct Config {
         /// Location where the cache should be placed on the file system
-        let url: URL
+        public let url: URL
 
         /// Encoder to encode cache entry into ``Data`` object
-        let encode: (Entry) throws -> Data
+        public let encode: (Entry) throws -> Data
 
         /// Decoder to decode data object into cache entiry
-        let decode: (Data) throws -> Entry
+        public let decode: (Data) throws -> Entry
 
         /// A file system accessor
-        let fileSystemAccessor: FileSystemAccessor
+        public let fileSystemAccessor: FileSystemAccessor
 
         /// Creates a conficuration for the ``FileCache``
         /// - Parameters:
@@ -209,7 +212,7 @@ extension FileCache {
         /// A default configuration with sensible defaults.
         public static func `default`(
             fileSystemAccessor: FileSystemAccessor = .default()
-        ) -> Self? {
+        ) -> Self {
             return Config(
                 url: URL.cachesDirectory,
                 encode: { try JSONEncoder().encode($0) },
