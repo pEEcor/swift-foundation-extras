@@ -1,7 +1,7 @@
 //
 //  UserDefaults.swift
 //
-//  Copyright © 2022 Paavo Becker.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import Foundation

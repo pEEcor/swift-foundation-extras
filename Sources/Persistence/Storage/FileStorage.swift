@@ -1,7 +1,7 @@
 //
 //  FileStorage.swift
 //
-//  Copyright © 2022 Paavo Becker.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import AsyncAlgorithms
@@ -105,8 +105,7 @@ extension FileStorage: Storage {
 
     public func read(
         name: String
-    )
-    throws -> Value {
+    ) throws -> Value {
         let url = try self.makeURL(for: name)
 
         logger.info("Reading \(Value.self) from \(url)")
@@ -138,8 +137,7 @@ extension FileStorage: Storage {
     public func update(
         name: String,
         value: Value
-    )
-    throws {
+    ) throws {
         let url = try self.makeURL(for: name)
 
         if self.config.fileSystemAccessor.fileExists(url) {
@@ -165,8 +163,7 @@ extension FileStorage: Storage {
     /// - Parameter dirName: Name of directory inside documents folder
     private func makeURL(
         for name: String
-    )
-    throws -> URL {
+    ) throws -> URL {
         return self.config.url.appendingPathComponent(name)
     }
 
@@ -176,8 +173,7 @@ extension FileStorage: Storage {
     /// - returns: Data object of file
     private func read(
         url: URL
-    )
-    throws -> Data {
+    ) throws -> Data {
         guard self.config.fileSystemAccessor.fileExists(url) else {
             throw Error.fileDoesNotExist
         }

@@ -96,7 +96,10 @@
 --wrapreturntype preserve
 --wrapconditions before-first
 --wraptypealiases before-first
---wrapeffects if-multiline
+
+# keeps "async" and "throws" and the opening curly brace of the function body on the same line as
+# the closing brace of the parameter block.
+--wrapeffects never
 
 # wrapAttributes
 --funcattributes prev-line

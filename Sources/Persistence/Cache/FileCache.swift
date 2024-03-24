@@ -1,7 +1,7 @@
 //
 //  FileCache.swift
 //
-//  Copyright © 2023 Paavo Becker.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import Foundation
@@ -38,9 +38,7 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
         initialValues: [Key: Value] = [:],
         id: UUID,
         config: Config
-    )
-        throws
-    {
+    ) throws {
         self.config = config
         self.id = id
 
