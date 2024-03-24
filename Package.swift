@@ -37,14 +37,14 @@ let package = Package(
         .testTarget(
             name: "FoundationExtrasTests",
             dependencies: [
-                .target(name: "FoundationExtras")
+                .target(name: "FoundationExtras"),
             ]
         ),
         .testTarget(
             name: "PersistenceTests",
             dependencies: [
-                .target(name: "Persistence")
+                .target(name: "Persistence"),
             ]
-        )
+        ),
     ]
 )
