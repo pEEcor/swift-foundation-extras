@@ -31,7 +31,7 @@ public class FileSystemAccessorBuilder {
         self.copy = { try fileManager.copyItem(at: $0, to: $1) }
     }
 
-    public func content(_ operation: @escaping (URL) throws -> [URL]) -> Self {
+    public func withContent(_ operation: @escaping (URL) throws -> [URL]) -> Self {
         self.content = operation
         return self
     }

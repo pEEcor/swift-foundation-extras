@@ -92,11 +92,13 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
 
 extension FileCache: Cache {
     public var content: [Key: Value] {
-        // Make sure that empty dictionary gets retured when path to cache does not exist
+        // Make sure that empty dictionary gets retured when path to cache does not exist. This
+        // is possible when the cache directory is removed from outside the process.
         guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
             return [:]
         }
 
+        // Make sure that retrieving urls from the cache directory succeeds.
         guard
             let urls = try? self.config.fileSystemAccessor.contentsOfDirectory(
                 self.urlToCacheDirectory
@@ -117,7 +119,7 @@ extension FileCache: Cache {
     }
 
     public func clear() {
-        // Make sure that clearing of cache is ignored when path do cache is not a folder
+        // Make sure that clearing of cache is ignored when path to cache is not a folder.
         guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
             return
         }
@@ -133,7 +135,7 @@ extension FileCache: Cache {
         try self.makeCacheDirectoryIfRequired(id: self.id)
 
         // Prior to writing to the cache, there is no check if the file exists already. That means
-        // that the old content will be replaced with the new content
+        // that the old content will be replaced with the new content.
         try self.config.fileSystemAccessor.write(data, url)
     }
 
@@ -144,12 +146,12 @@ extension FileCache: Cache {
     public func removeValue(forKey key: Key) {
         let url = self.makeUrl(for: key)
 
-        // Make sure that removal is ignored when path to cache is not a folder
+        // Make sure that removal is ignored when path to cache is not a folder.
         guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
             return
         }
 
-        // Make sure that removal is ignored when file does not exist
+        // Make sure that removal is ignored when file does not exist.
         guard self.config.fileSystemAccessor.fileExists(url) else {
             return
         }
@@ -219,8 +221,10 @@ extension FileCache {
             )
         }
     }
+}
 
-    enum FileCacheError: Error {
-        case invalidCacheIdFileWithEqualNameAlreadyExists
-    }
+// MARK: - FileCacheError
+
+public enum FileCacheError: Error {
+    case invalidCacheIdFileWithEqualNameAlreadyExists
 }

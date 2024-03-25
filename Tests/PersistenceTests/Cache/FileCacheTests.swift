@@ -41,4 +41,117 @@ final class FileCacheTests: XCTestCase {
         // THEN
         XCTAssertEqual(cache.value(forKey: 1), 42)
     }
+
+    func testInit_shouldMakeCacheDirectory_whenNotPresent() throws {
+        // GIVEN
+        let fileSystemAccessor = FileSystemAccessorBuilder()
+            .withHasFile { _ in true }
+            .withIsDirectory { _ in false }
+            .build()
+
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+
+        // WHEN
+        XCTAssertThrowsError(try FileCache(
+            initialValues: [1: 42],
+            id: id,
+            config: config
+        )) { error in
+            XCTAssertEqual(error as! FileCacheError, .invalidCacheIdFileWithEqualNameAlreadyExists)
+        }
+    }
+
+    func testContent_containEmptyDictionary_whenCacheDirectoryDoesNotExist() throws {
+        // GIVEN
+        let fileSystemAccessor = FileSystemAccessorBuilder()
+            .build()
+
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+
+        // WHEN
+        try fileSystemAccessor.remove(config.url.appending(path: id.uuidString))
+        let content = cache.content
+
+        // THEN
+        XCTAssertEqual(content, [:])
+    }
+
+    func testContent_containEmptyDictionary_whenDirectoryAccessFails() throws {
+        struct Failure: Error, Equatable {}
+
+        // GIVEN
+        let fileSystemAccessor = FileSystemAccessorBuilder()
+            .withContent { _ in throw Failure() }
+            .build()
+
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+
+        // WHEN
+        let content = cache.content
+
+        // THEN
+        XCTAssertEqual(content, [:])
+    }
+
+    func testContent_containInitialValues() throws {
+        // GIVEN
+        let fileSystemAccessor = FileSystemAccessorBuilder()
+            .build()
+
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+
+        // WHEN
+        let content = cache.content
+
+        // THEN
+        XCTAssertEqual(content, [1: 42])
+    }
+
+    func testClear_deleteDirectory() throws {
+        var directory: URL?
+
+        // GIVEN
+        let fileSystemAccessor = FileSystemAccessorBuilder()
+            .withRemove { directory = $0 }
+            .build()
+
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+
+        // WHEN
+        cache.clear()
+
+        // THEN
+        XCTAssertEqual(directory, config.url.appending(path: id.uuidString))
+    }
+
+    func testClear_doNothing_whenCacheDirectoryIsNotPresent() throws {
+        var directory: URL?
+        var isDirectory = true
+
+        // GIVEN
+        let fileSystemAccessor = FileSystemAccessorBuilder()
+            .withIsDirectory { _ in isDirectory }
+            .withRemove { directory = $0 }
+            .build()
+
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+
+        // WHEN
+        isDirectory = false
+        cache.clear()
+
+        // THEN
+        XCTAssertNil(directory)
+    }
 }
