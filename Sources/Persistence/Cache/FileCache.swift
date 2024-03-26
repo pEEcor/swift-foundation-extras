@@ -99,11 +99,8 @@ extension FileCache: Cache {
         }
 
         // Make sure that retrieving urls from the cache directory succeeds.
-        guard
-            let urls = try? self.config.fileSystemAccessor.contentsOfDirectory(
-                self.urlToCacheDirectory
-            ) else
-        {
+        guard let urls = try? self.config.fileSystemAccessor
+            .contentsOfDirectory(self.urlToCacheDirectory) else {
             return [:]
         }
 
@@ -146,16 +143,13 @@ extension FileCache: Cache {
     public func removeValue(forKey key: Key) {
         let url = self.makeUrl(for: key)
 
-        // Make sure that removal is ignored when path to cache is not a folder.
-        guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
-            return
-        }
-
         // Make sure that removal is ignored when file does not exist.
         guard self.config.fileSystemAccessor.fileExists(url) else {
             return
         }
 
+        // The error is ignored. With the check above it is likely that the file got
+        // removed in the meantime.
         try? self.config.fileSystemAccessor.remove(url)
     }
 }

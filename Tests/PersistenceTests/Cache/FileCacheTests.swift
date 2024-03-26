@@ -97,6 +97,25 @@ final class FileCacheTests: XCTestCase {
         // THEN
         XCTAssertEqual(content, [:])
     }
+    
+    func testContent_ignoresFilesWhenReadingFails() throws {
+        struct Failure: Error, Equatable {}
+
+        // GIVEN
+        let fileSystemAccessor = FileSystemAccessorBuilder()
+            .withRead { _ in throw Failure() }
+            .build()
+
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+
+        // WHEN
+        let content = cache.content
+
+        // THEN
+        XCTAssertEqual(content, [:])
+    }
 
     func testContent_containInitialValues() throws {
         // GIVEN
@@ -153,5 +172,75 @@ final class FileCacheTests: XCTestCase {
 
         // THEN
         XCTAssertNil(directory)
+    }
+    
+    func testInsert_insertValueForKey() throws {
+        // GIVEN
+        let fsAccessor = FileSystemAccessorBuilder()
+            .build()
+        
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fsAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        
+        // WHEN
+        try cache.insert(43, forKey: 2)
+        
+        // THEN
+        let output = cache.value(forKey: 2)
+        XCTAssertEqual(output, 43)
+    }
+    
+    func testValue_returnValueForKey_whenKeyExists() throws {
+        // GIVEN
+        let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
+        
+        // WHEN
+        let output = cache.value(forKey: 1)
+        
+        // THEN
+        XCTAssertEqual(output, 42)
+    }
+    
+    func testValue_returnNil_whenKeyDoesNotExist() throws {
+        // GIVEN
+        let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
+        
+        // WHEN
+        let output = cache.value(forKey: 2)
+        
+        // THEN
+        XCTAssertEqual(output, nil)
+    }
+    
+    func testRemoveValue_shouldRemove() throws {
+        // GIVEN
+        let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
+        
+        // WHEN
+        cache.removeValue(forKey: 1)
+        
+        // THEN
+        let output = cache.value(forKey: 1)
+        XCTAssertEqual(output, nil)
+    }
+    
+    func testRemoveValue_shouldNotDeleteFile_whenItDoesNotExist() throws {
+        var didRemoveFile = false
+        
+        // GIVEN
+        let fsAccessor = FileSystemAccessorBuilder()
+            .withRemove { _ in didRemoveFile = true }
+            .build()
+        
+        let id = UUID()
+        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fsAccessor)
+        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        
+        // WHEN
+        cache.removeValue(forKey: 2)
+        
+        // THEN
+        XCTAssertFalse(didRemoveFile)
     }
 }
