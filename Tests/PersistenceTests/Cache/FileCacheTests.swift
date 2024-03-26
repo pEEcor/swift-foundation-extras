@@ -39,7 +39,7 @@ final class FileCacheTests: XCTestCase {
         let cache: FileCache = try FileCache(initialValues: [1: 42], id: id, config: config)
 
         // THEN
-        XCTAssertEqual(cache.value(forKey: 1), 42)
+        XCTAssertEqual(try cache.value(forKey: 1), 42)
     }
 
     func testInit_shouldMakeCacheDirectory_whenNotPresent() throws {
@@ -187,7 +187,7 @@ final class FileCacheTests: XCTestCase {
         try cache.insert(43, forKey: 2)
         
         // THEN
-        let output = cache.value(forKey: 2)
+        let output = try cache.value(forKey: 2)
         XCTAssertEqual(output, 43)
     }
     
@@ -196,7 +196,7 @@ final class FileCacheTests: XCTestCase {
         let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
         
         // WHEN
-        let output = cache.value(forKey: 1)
+        let output = try cache.value(forKey: 1)
         
         // THEN
         XCTAssertEqual(output, 42)
@@ -207,25 +207,27 @@ final class FileCacheTests: XCTestCase {
         let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
         
         // WHEN
-        let output = cache.value(forKey: 2)
-        
-        // THEN
-        XCTAssertEqual(output, nil)
+        XCTAssertThrowsError(try cache.value(forKey: 2)) { error in
+            // THEN
+            XCTAssertEqual((error as NSError).code, 260)
+        }
     }
     
-    func testRemoveValue_shouldRemove() throws {
+    func testRemove_shouldRemove() throws {
         // GIVEN
         let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
         
         // WHEN
-        cache.removeValue(forKey: 1)
+        try cache.remove(forKey: 1)
         
         // THEN
-        let output = cache.value(forKey: 1)
-        XCTAssertEqual(output, nil)
+        XCTAssertThrowsError(try cache.value(forKey: 2)) { error in
+            // THEN
+            XCTAssertEqual((error as NSError).code, 260)
+        }
     }
     
-    func testRemoveValue_shouldNotDeleteFile_whenItDoesNotExist() throws {
+    func testRemove_shouldNotDeleteFile_whenItDoesNotExist() throws {
         var didRemoveFile = false
         
         // GIVEN
@@ -238,9 +240,11 @@ final class FileCacheTests: XCTestCase {
         let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
         
         // WHEN
-        cache.removeValue(forKey: 2)
+        XCTAssertThrowsError(try cache.remove(forKey: 2)) { error in
+            // THEN
+            XCTAssertEqual((error as NSError).code, 260)
+        }
         
-        // THEN
         XCTAssertFalse(didRemoveFile)
     }
 }

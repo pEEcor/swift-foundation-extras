@@ -41,8 +41,11 @@ public final class MemoryCache<Key: Hashable, Value> {
         }
     }
 
-    private func entry(forKey key: Key) -> Entry? {
-        self.cache.object(forKey: WrappedKey(key))
+    private func entry(forKey key: Key) throws -> Entry {
+        guard let entry = self.cache.object(forKey: WrappedKey(key)) else {
+            throw MemoryCacheError.missingValueForKey
+        }
+        return entry
     }
 }
 
@@ -51,7 +54,7 @@ public final class MemoryCache<Key: Hashable, Value> {
 extension MemoryCache: Cache {
     public var content: [Key: Value] {
         self.keyTracker.all
-            .compactMap { self.entry(forKey: $0) }
+            .compactMap { try? self.entry(forKey: $0) }
             .reduce(into: [:]) { $0[$1.key] = $1.value }
     }
 
@@ -65,12 +68,14 @@ extension MemoryCache: Cache {
         self.keyTracker.insert(key: key)
     }
 
-    public func value(forKey key: Key) -> Value? {
-        self.entry(forKey: key)?.value
+    public func value(forKey key: Key) throws -> Value {
+        try self.entry(forKey: key).value
     }
 
-    public func removeValue(forKey key: Key) {
+    public func remove(forKey key: Key) throws -> Value {
+        let value = try self.value(forKey: key)
         self.cache.removeObject(forKey: WrappedKey(key))
+        return value
     }
 }
 
@@ -123,4 +128,8 @@ extension MemoryCache {
             self.keys.insert(key)
         }
     }
+}
+
+public enum MemoryCacheError: Error, Equatable {
+    case missingValueForKey
 }

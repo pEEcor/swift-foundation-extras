@@ -54,16 +54,9 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
         self.urlToCacheDirectory.appendingPathComponent("\(key.hashValue)")
     }
 
-    private func entry(forKey key: Key) -> Entry? {
-        let url = self.makeUrl(for: key)
-        return self.entry(forUrl: url)
-    }
-
-    private func entry(forUrl url: URL) -> Entry? {
-        guard let data = try? self.config.fileSystemAccessor.read(url) else {
-            return nil
-        }
-        return try? self.config.decode(data)
+    private func entry(forUrl url: URL) throws -> Entry {
+        let data = try self.config.fileSystemAccessor.read(url)
+        return try self.config.decode(data)
     }
 
     private func makeCacheDirectoryIfRequired(id: UUID) throws {
@@ -92,20 +85,15 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
 
 extension FileCache: Cache {
     public var content: [Key: Value] {
-        // Make sure that empty dictionary gets retured when path to cache does not exist. This
-        // is possible when the cache directory is removed from outside the process.
-        guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
-            return [:]
-        }
-
-        // Make sure that retrieving urls from the cache directory succeeds.
+        // A failure while reading the cache directory is gracefully relaxed to an empty dictionary.
         guard let urls = try? self.config.fileSystemAccessor
             .contentsOfDirectory(self.urlToCacheDirectory) else {
             return [:]
         }
 
         let content: [Key: Value] = urls.reduce(into: [:]) { partialResult, url in
-            guard let entry = self.entry(forUrl: url) else {
+            // Entries where reading fails, are gracefully ignored.
+            guard let entry = try? self.entry(forUrl: url) else {
                 return
             }
 
@@ -136,21 +124,23 @@ extension FileCache: Cache {
         try self.config.fileSystemAccessor.write(data, url)
     }
 
-    public func value(forKey key: Key) -> Value? {
-        return self.entry(forKey: key)?.value
+    public func value(forKey key: Key) throws -> Value {
+        let url = self.makeUrl(for: key)
+        return try self.entry(forUrl: url).value
     }
 
-    public func removeValue(forKey key: Key) {
+    @discardableResult
+    public func remove(forKey key: Key) throws -> Value {
         let url = self.makeUrl(for: key)
-
-        // Make sure that removal is ignored when file does not exist.
-        guard self.config.fileSystemAccessor.fileExists(url) else {
-            return
-        }
-
-        // The error is ignored. With the check above it is likely that the file got
-        // removed in the meantime.
-        try? self.config.fileSystemAccessor.remove(url)
+        
+        // Get the entry before removing it
+        let entry = try self.entry(forUrl: url)
+        
+        // Perform the actual removal
+        try self.config.fileSystemAccessor.remove(url)
+        
+        // Return the deleted value to the caller.
+        return entry.value
     }
 }
 

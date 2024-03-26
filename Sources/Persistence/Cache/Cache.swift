@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - Cache
 
-/// A generic cache protocol
+/// A generic cache protocol.
 public protocol Cache<Key, Value> {
     associatedtype Key: Hashable
     associatedtype Value
@@ -17,10 +17,10 @@ public protocol Cache<Key, Value> {
     /// might take a lot of time when accessing all elements of a cache.
     var content: [Key: Value] { get }
 
-    /// Clears the cache
+    /// Clears the cache.
     func clear()
 
-    /// Adds a new element for the given key to the cache
+    /// Adds a new element for the given key to the cache.
     ///
     /// If the cache already contains an element for the given key. The cache implementation may
     /// decide to replace the old value with the new one.
@@ -32,12 +32,13 @@ public protocol Cache<Key, Value> {
 
     /// Returns the value for the given key if the cache contains a value for the key
     /// - Parameter forKey: Key
-    /// - Returns: Optional value, that contains value or nil if not found in cache
-    func value(forKey: Key) -> Value?
+    /// - Returns: Optional value, that contains value or nil if not found in cache.
+    func value(forKey: Key) throws -> Value
 
-    /// Removes the value of the given key from the cache
+    /// Removes the value of the given key from the cache.
+    ///
     /// - Parameter forKey: Key
-    func removeValue(forKey: Key)
+    func remove(forKey: Key) throws -> Value
 }
 
 extension Cache where Value == Data {
@@ -56,15 +57,13 @@ extension Cache where Value == Data {
     }
 
     /// Returns the value for the given key if the cache contains a value for the key
+    ///
     /// - Parameter forKey: Key
     /// - Returns: Optional value, that contains value or nil if not found in cache
-    public func value<Value: Decodable>(forKey key: Key) -> Value? {
-        guard let data = self.value(forKey: key) else {
-            return nil
-        }
-
+    public func value<Value: Decodable>(forKey key: Key) throws -> Value {
+        let data = try self.value(forKey: key)
         let decoder = JSONDecoder()
-        let value: Value? = try? decoder.decode(Value.self, from: data)
+        let value: Value = try decoder.decode(Value.self, from: data)
 
         return value
     }
