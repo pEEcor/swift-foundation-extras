@@ -73,7 +73,7 @@ public class FileSystemAccessorBuilder {
 
     public func build() -> FileSystemAccessor {
         FileSystemAccessor(
-            contentsOfDirectory: self.content,
+            contents: self.content,
             createDirectory: self.createDirectory,
             fileExists: self.hasFile,
             isDirectory: self.isDirectory,

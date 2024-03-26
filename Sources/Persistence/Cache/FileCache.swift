@@ -61,7 +61,7 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
 
     private func makeCacheDirectoryIfRequired(id: UUID) throws {
         // Check if the cache folder exists
-        if self.config.fileSystemAccessor.fileExists(self.urlToCacheDirectory) {
+        if self.config.fileSystemAccessor.isFilePresent(self.urlToCacheDirectory) {
             // Make sure that there is no file with the same name of the cache
             guard self.config.fileSystemAccessor.isDirectory(self.urlToCacheDirectory) else {
                 throw FileCacheError.invalidCacheIdFileWithEqualNameAlreadyExists
@@ -87,7 +87,7 @@ extension FileCache: Cache {
     public var content: [Key: Value] {
         // A failure while reading the cache directory is gracefully relaxed to an empty dictionary.
         guard let urls = try? self.config.fileSystemAccessor
-            .contentsOfDirectory(self.urlToCacheDirectory) else {
+            .contents(self.urlToCacheDirectory) else {
             return [:]
         }
 

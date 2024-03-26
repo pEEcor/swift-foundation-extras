@@ -42,7 +42,7 @@ extension FileStorage: Storage {
         value: Value
     ) throws {
         let fileUrl = try self.makeURL(for: name)
-        guard !self.config.fileSystemAccessor.fileExists(fileUrl) else {
+        guard !self.config.fileSystemAccessor.isFilePresent(fileUrl) else {
             throw Error.fileAlreadyExists
         }
 
@@ -67,7 +67,7 @@ extension FileStorage: Storage {
         let url = try self.makeURL(for: name)
 
         // Deletion is gracefully ignored if file or directory does not exist
-        guard self.config.fileSystemAccessor.fileExists(url) else {
+        guard self.config.fileSystemAccessor.isFilePresent(url) else {
             return
         }
 
@@ -77,7 +77,7 @@ extension FileStorage: Storage {
     }
 
     public func delete() throws {
-        guard self.config.fileSystemAccessor.fileExists(self.config.url) else {
+        guard self.config.fileSystemAccessor.isFilePresent(self.config.url) else {
             return
         }
 
@@ -115,13 +115,13 @@ extension FileStorage: Storage {
 
     public func read() throws -> [Value] {
         // Make sure that the target directory exists, otherwise return empty array
-        guard self.config.fileSystemAccessor.fileExists(self.config.url) else {
+        guard self.config.fileSystemAccessor.isFilePresent(self.config.url) else {
             return []
         }
 
         // Read in all files from target directory and filter out the contained directories
         let urls = try self.config.fileSystemAccessor
-            .contentsOfDirectory(self.config.url)
+            .contents(self.config.url)
             .filter { !self.config.fileSystemAccessor.isDirectory($0) }
 
         logger.info("Reading \(Value.self)'s from \(self.config.url)")
@@ -140,7 +140,7 @@ extension FileStorage: Storage {
     ) throws {
         let url = try self.makeURL(for: name)
 
-        if self.config.fileSystemAccessor.fileExists(url) {
+        if self.config.fileSystemAccessor.isFilePresent(url) {
             // Remember the previous value.
             let prev = try self.read(name: name)
 
@@ -174,7 +174,7 @@ extension FileStorage: Storage {
     private func read(
         url: URL
     ) throws -> Data {
-        guard self.config.fileSystemAccessor.fileExists(url) else {
+        guard self.config.fileSystemAccessor.isFilePresent(url) else {
             throw Error.fileDoesNotExist
         }
 
