@@ -130,6 +130,8 @@ extension MemoryCache {
     }
 }
 
+// MARK: - MemoryCacheError
+
 public enum MemoryCacheError: Error, Equatable {
     case missingValueForKey
 }

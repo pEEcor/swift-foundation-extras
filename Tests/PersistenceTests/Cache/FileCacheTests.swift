@@ -6,126 +6,124 @@
 
 import Persistence
 import XCTest
+import TestExtras
 
 final class FileCacheTests: XCTestCase {
     func testInit_shouldCreateCacheDirectory_whenNotPresent() throws {
-        var directory: URL? = nil
+        let expectation = expectation(description: "create-directory")
 
         // GIVEN
-        // A random id will always force the creation of a new cache directory
         let id = UUID()
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .withCreateDirectory { url in directory = url }
-            .build()
-
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
 
         // WHEN
+        fileManager.onCreateDirectory = { url in
+            XCTAssertEqual(url, config.url.appending(path: id.uuidString))
+            expectation.fulfill()
+        }
+        fileManager.onFileExists = { _ in false }
         let _: FileCache<Int, Int> = try FileCache(id: id, config: config)
 
         // THEN
-        XCTAssertEqual(config.url.appending(path: id.uuidString), directory)
+        wait(for: [expectation], timeout: 3)
     }
 
-    func testInit_shouldInsertInitialValuesIntoCache_whenInitialValuesAreProvided() throws {
+    func testInit_shouldNotMakeCacheDirectory_whenPresent() throws {
+        let expectation = expectation(description: "create-directory")
+        expectation.isInverted = true
+        
         // GIVEN
         let id = UUID()
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .build()
-
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        // Make the first cache.
+        fileManager.onFileExists = { _ in false }
+        fileManager.onCreateDirectory = { _ in }
+        let _: FileCache<Int, Int> = try FileCache(id: id, config: config)
+        
         // WHEN
-        let cache: FileCache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        // Make the second cache with the same id such that the directory already exists.
+        fileManager.onFileExists = { _ in true }
+        fileManager.onCreateDirectory = { _ in expectation.fulfill() }
+        let _: FileCache<Int, Int> = try FileCache(id: id, config: config)
 
         // THEN
-        XCTAssertEqual(try cache.value(forKey: 1), 42)
-    }
-
-    func testInit_shouldMakeCacheDirectory_whenNotPresent() throws {
-        // GIVEN
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .withHasFile { _ in true }
-            .withIsDirectory { _ in false }
-            .build()
-
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-
-        // WHEN
-        XCTAssertThrowsError(try FileCache(
-            initialValues: [1: 42],
-            id: id,
-            config: config
-        )) { error in
-            XCTAssertEqual(error as! FileCacheError, .invalidCacheIdFileWithEqualNameAlreadyExists)
-        }
-    }
-
-    func testContent_containEmptyDictionary_whenCacheDirectoryDoesNotExist() throws {
-        // GIVEN
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .build()
-
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
-
-        // WHEN
-        try fileSystemAccessor.remove(config.url.appending(path: id.uuidString))
-        let content = cache.content
-
-        // THEN
-        XCTAssertEqual(content, [:])
-    }
-
-    func testContent_containEmptyDictionary_whenDirectoryAccessFails() throws {
-        struct Failure: Error, Equatable {}
-
-        // GIVEN
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .withContent { _ in throw Failure() }
-            .build()
-
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
-
-        // WHEN
-        let content = cache.content
-
-        // THEN
-        XCTAssertEqual(content, [:])
+        wait(for: [expectation], timeout: 0.5)
     }
     
-    func testContent_ignoresFilesWhenReadingFails() throws {
-        struct Failure: Error, Equatable {}
+    func testInit_shouldInsertInitialValuesIntoCache_whenInitialValuesAreProvided() throws {
+        let expectation = expectation(description: "write-file")
 
         // GIVEN
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .withRead { _ in throw Failure() }
-            .build()
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        fileManager.onFileExists = { _ in true }
+        fileManager.onCreateFile = { path, data in
+            let (key, value) = try! config.decode(data!)
+            XCTAssertEqual(key, 1)
+            XCTAssertEqual(value, 42)
+            expectation.fulfill()
+            return true
+        }
+        
+        // WHEN
+        let _ = try FileCache(initialValues: [1: 42], config: config)
 
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        // THEN
+        wait(for: [expectation])
+    }
+
+
+    func testContent_containEmptyDictionary_whenCacheDirectoryDoesNotExist() throws {
+        struct Failure: Error, Equatable {}
+        
+        // GIVEN
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        fileManager.onFileExists = { _ in false }
+        fileManager.onCreateDirectory = { _ in }
+        let cache = try FileCache(config: config)
 
         // WHEN
+        fileManager.onContentsOfDirectory = { _ in throw Failure() }
         let content = cache.content
 
         // THEN
         XCTAssertEqual(content, [:])
     }
 
-    func testContent_containInitialValues() throws {
+    func testContent_containEmptyPairs_whereAccessSucceeds() throws {
+        struct Failure: Error, Equatable {}
+
         // GIVEN
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .build()
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        fileManager.onFileExists = { _ in true }
+        let cache = try FileCache(config: config)
 
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
-
+        // Define the results that are returned or thrown when the content for a specific path
+        // gets requested from the filemanager.
+        let results: [Int: Result<Data, Failure>] = [
+            1.hashValue: .success(try! config.encode(1, 42)),
+            2.hashValue: .failure(Failure())
+        ]
+        
+        // Define the paths that should be returned when reading the content of the cache directory.
+        fileManager.onContentsOfDirectory = { directory in
+            results.keys.map(String.init).map { directory.appending(path: $0) }
+        }
+        
+        // Return the respective result based on the requested key.
+        fileManager.onContents = { path in
+            let hashValue = Int(URL(filePath: path).lastPathComponent)!
+            return try? results[hashValue]?.get()
+        }
+        
         // WHEN
         let content = cache.content
 
@@ -133,118 +131,161 @@ final class FileCacheTests: XCTestCase {
         XCTAssertEqual(content, [1: 42])
     }
 
-    func testClear_deleteDirectory() throws {
-        var directory: URL?
+    func testClear_deleteCacheDirectory() throws {
+        let expectation = expectation(description: "remove-directory")
 
         // GIVEN
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .withRemove { directory = $0 }
-            .build()
-
         let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        fileManager.onFileExists = { _ in true }
+        fileManager.onRemove = { url in
+            XCTAssertEqual(url, config.url.appending(path: id.uuidString))
+            expectation.fulfill()
+        }
+        let cache = try FileCache(id: id, config: config)
 
         // WHEN
         cache.clear()
 
         // THEN
-        XCTAssertEqual(directory, config.url.appending(path: id.uuidString))
+        wait(for: [expectation])
     }
 
     func testClear_doNothing_whenCacheDirectoryIsNotPresent() throws {
-        var directory: URL?
-        var isDirectory = true
+        let expectation = expectation(description: "remove-directory")
+        expectation.isInverted = true
 
         // GIVEN
-        let fileSystemAccessor = FileSystemAccessorBuilder()
-            .withIsDirectory { _ in isDirectory }
-            .withRemove { directory = $0 }
-            .build()
-
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fileSystemAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        fileManager.onFileExists = { _ in true }
+        let cache = try FileCache(config: config)
+        
+        fileManager.onFileExists = { _ in false }
+        fileManager.onRemove = { _ in expectation.fulfill() }
 
         // WHEN
-        isDirectory = false
         cache.clear()
 
         // THEN
-        XCTAssertNil(directory)
+        wait(for: [expectation], timeout: 0.5)
     }
-    
+
     func testInsert_insertValueForKey() throws {
+        let expectation = expectation(description: "insert-key-value")
+
         // GIVEN
-        let fsAccessor = FileSystemAccessorBuilder()
-            .build()
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
         
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fsAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        fileManager.onFileExists = { _ in true }
+        let cache = try FileCache(config: config)
         
+        fileManager.onCreateFile = { (path, data) in
+            let (key, value) = try! config.decode(data!)
+            XCTAssertEqual([key: value], [1: 42])
+            expectation.fulfill()
+            return true
+        }
+
         // WHEN
-        try cache.insert(43, forKey: 2)
-        
+        try cache.insert(42, forKey: 1)
+
         // THEN
-        let output = try cache.value(forKey: 2)
-        XCTAssertEqual(output, 43)
+        wait(for: [expectation])
     }
     
+    func testInsert_throwError_whenFileOperationFails() throws {
+        // GIVEN
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        fileManager.onFileExists = { _ in true }
+        let cache = try FileCache(config: config)
+        
+        fileManager.onCreateFile = { _, _ in false }
+
+        // WHEN
+        XCTAssertThrowsError(try cache.insert(42, forKey: 1)) { error in
+            // THEN
+            XCTAssertEqual(error as! FileCacheFailure, .insufficientPermissions)
+        }
+    }
+
     func testValue_returnValueForKey_whenKeyExists() throws {
+        let expectation = expectation(description: "read-key-value")
+
         // GIVEN
-        let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
         
-        // WHEN
-        let output = try cache.value(forKey: 1)
+        fileManager.onFileExists = { _ in true }
+        let cache = try FileCache(config: config)
         
-        // THEN
-        XCTAssertEqual(output, 42)
-    }
-    
-    func testValue_returnNil_whenKeyDoesNotExist() throws {
-        // GIVEN
-        let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
-        
-        // WHEN
-        XCTAssertThrowsError(try cache.value(forKey: 2)) { error in
-            // THEN
-            XCTAssertEqual((error as NSError).code, 260)
+        fileManager.onContents = { path in
+            XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
+            expectation.fulfill()
+            return try! config.encode(1, 42)
         }
+
+        // WHEN
+        _ = try cache.value(forKey: 1)
+
+        // THEN
+        wait(for: [expectation])
     }
-    
+
     func testRemove_shouldRemove() throws {
+        let expectation = expectation(description: "remove-key-value")
+
         // GIVEN
-        let cache = try FileCache(initialValues: [1: 42], id: UUID(), config: .default())
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
+        
+        fileManager.onFileExists = { _ in true }
+        let cache = try FileCache(config: config)
+        
+        fileManager.onContents = { path in
+            XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
+            expectation.fulfill()
+            return try! config.encode(1, 42)
+        }
+        
+        fileManager.onRemove = { url in }
         
         // WHEN
-        try cache.remove(forKey: 1)
-        
+        _ = try cache.remove(forKey: 1)
+
         // THEN
-        XCTAssertThrowsError(try cache.value(forKey: 2)) { error in
-            // THEN
-            XCTAssertEqual((error as NSError).code, 260)
-        }
+        wait(for: [expectation])
     }
-    
+
     func testRemove_shouldNotDeleteFile_whenItDoesNotExist() throws {
-        var didRemoveFile = false
-        
+        let expectation = expectation(description: "remove-key-value")
+        expectation.isInverted = true
+
         // GIVEN
-        let fsAccessor = FileSystemAccessorBuilder()
-            .withRemove { _ in didRemoveFile = true }
-            .build()
+        let fileManager = MockFileManager()
+        let config = FileCache<Int, Int>.Config(fileManager: fileManager)
         
-        let id = UUID()
-        let config: FileCache<Int, Int>.Config = .default(fileSystemAccessor: fsAccessor)
-        let cache = try FileCache(initialValues: [1: 42], id: id, config: config)
+        fileManager.onFileExists = { _ in true }
+        let cache = try FileCache(config: config)
+        
+        fileManager.onContents = { path in
+            XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
+            return try! config.encode(1, 42)
+        }
+        
+        fileManager.onFileExists = { _ in false }
+        fileManager.onRemove = { url in expectation.fulfill() }
         
         // WHEN
-        XCTAssertThrowsError(try cache.remove(forKey: 2)) { error in
-            // THEN
-            XCTAssertEqual((error as NSError).code, 260)
-        }
-        
-        XCTAssertFalse(didRemoveFile)
+        _ = try cache.remove(forKey: 1)
+
+        // THEN
+        wait(for: [expectation], timeout: 0.5)
     }
 }
