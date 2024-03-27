@@ -72,6 +72,7 @@ extension MemoryCache: Cache {
         try self.entry(forKey: key).value
     }
 
+    @discardableResult
     public func remove(forKey key: Key) throws -> Value {
         let value = try self.value(forKey: key)
         self.cache.removeObject(forKey: WrappedKey(key))
