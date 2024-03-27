@@ -11,6 +11,7 @@ let package = Package(
         // other packages.
         .library(name: "FoundationExtras", targets: ["FoundationExtras"]),
         .library(name: "Persistence", targets: ["Persistence"]),
+        .library(name: "TestExtras", targets: ["TestExtras"]),
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay.git", from: "1.0.0"),
@@ -31,7 +32,12 @@ let package = Package(
             name: "FoundationExtras",
             dependencies: [
                 .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
+            ]
+        ),
+        .target(
+            name: "TestExtras",
+            dependencies: [
+                .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
             ]
         ),
         .testTarget(
@@ -44,6 +50,7 @@ let package = Package(
             name: "PersistenceTests",
             dependencies: [
                 .target(name: "Persistence"),
+                .target(name: "TestExtras"),
             ]
         ),
     ]
