@@ -41,17 +41,18 @@ extension FileStorage: Storage {
         value: Value
     ) throws {
         let fileUrl = try self.makeURL(for: name)
-        guard !self.config.fileSystemAccessor.isFilePresent(fileUrl) else {
+        guard !self.config.fileManager.fileExists(at: fileUrl) else {
             throw Error.fileAlreadyExists
         }
 
-        // Create url without filename component
+        // Create url without filename component.
         let folderUrl = fileUrl.deletingLastPathComponent()
 
-        // Check if target directory exists
-        if !self.config.fileSystemAccessor.isDirectory(folderUrl) {
-            // Create target directory that holds the values of this FileStorage
-            try self.config.fileSystemAccessor.createDirectory(folderUrl)
+        // Check if target directory exists.
+        if !self.config.fileManager.directoryExists(at: folderUrl) {
+            // Create target directory that holds the values of this FileStorage.
+            try self.config.fileManager
+                .createDirectory(at: folderUrl, withIntermediateDirectories: false)
         }
 
         logger.info("Writing \(Value.self) to \(fileUrl)")
@@ -66,23 +67,23 @@ extension FileStorage: Storage {
         let url = try self.makeURL(for: name)
 
         // Deletion is gracefully ignored if file or directory does not exist
-        guard self.config.fileSystemAccessor.isFilePresent(url) else {
+        guard self.config.fileManager.fileExists(at: url) else {
             return
         }
 
         logger.info("Deleting \(Value.self) \(url)")
 
-        try self.config.fileSystemAccessor.remove(url)
+        try self.config.fileManager.removeItem(at: url)
     }
 
     public func delete() throws {
-        guard self.config.fileSystemAccessor.isFilePresent(self.config.url) else {
+        guard self.config.fileManager.fileExists(at: self.config.url) else {
             return
         }
 
         logger.info("Deleting directory \(self.config.url)")
 
-        try self.config.fileSystemAccessor.remove(self.config.url)
+        try self.config.fileManager.removeItem(at: self.config.url)
     }
 
     public func observe<Element: Equatable>(
@@ -114,14 +115,14 @@ extension FileStorage: Storage {
 
     public func read() throws -> [Value] {
         // Make sure that the target directory exists, otherwise return empty array
-        guard self.config.fileSystemAccessor.isFilePresent(self.config.url) else {
+        guard self.config.fileManager.fileExists(at: self.config.url) else {
             return []
         }
 
         // Read in all files from target directory and filter out the contained directories
-        let urls = try self.config.fileSystemAccessor
-            .contents(self.config.url)
-            .filter { !self.config.fileSystemAccessor.isDirectory($0) }
+        let urls = try self.config.fileManager
+            .contentsOfDirectory(at: self.config.url)
+            .filter { !self.config.fileManager.directoryExists(at: $0) }
 
         logger.info("Reading \(Value.self)'s from \(self.config.url)")
 
@@ -139,7 +140,7 @@ extension FileStorage: Storage {
     ) throws {
         let url = try self.makeURL(for: name)
 
-        if self.config.fileSystemAccessor.isFilePresent(url) {
+        if self.config.fileManager.fileExists(at: url) {
             // Remember the previous value.
             let prev = try self.read(name: name)
 
@@ -173,7 +174,7 @@ extension FileStorage: Storage {
     private func read(
         url: URL
     ) throws -> Data {
-        guard self.config.fileSystemAccessor.isFilePresent(url) else {
+        guard self.config.fileManager.fileExists(at: url) else {
             throw Error.fileDoesNotExist
         }
 
@@ -186,7 +187,7 @@ extension FileStorage: Storage {
 extension FileStorage {
     public struct Config {
         /// A file system accessor
-        let fileSystemAccessor: FileSystemAccessor
+        let fileManager: FileManager
 
         /// The url to use for file storage
         public let url: URL
@@ -211,12 +212,12 @@ extension FileStorage {
                 Value.self,
                 from: $0
             ) },
-            fileSystemAccessor: FileSystemAccessor = .default()
+            fileManager: FileManager = .default
         ) {
             self.url = url
             self.decode = decode
             self.encode = encode
-            self.fileSystemAccessor = fileSystemAccessor
+            self.fileManager = fileManager
         }
 
         /// A default configuration with sensible defaults.
