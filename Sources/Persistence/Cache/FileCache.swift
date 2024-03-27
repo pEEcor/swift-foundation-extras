@@ -19,7 +19,7 @@ import Foundation
 /// system.
 public final class FileCache<Key: Hashable & Codable, Value: Codable> {
     private let config: Config
-    
+
     /// The unique id of the cache.
     let id: UUID
 
@@ -68,7 +68,7 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
         guard !self.config.fileManager.directoryExists(at: self.cacheDirectory) else {
             return
         }
-        
+
         // Create cache folder.
         try self.config.fileManager
             .createDirectory(at: self.cacheDirectory, withIntermediateDirectories: true)
@@ -196,21 +196,21 @@ extension FileCache {
         ///   - fileSystemAccessor: A file system accessor
         public init(
             url: URL = URL.cachesDirectory,
-            encode: ((Key, Value) throws -> Data)? = nil ,
+            encode: ((Key, Value) throws -> Data)? = nil,
             decode: ((Data) throws -> (Key, Value))? = nil,
             fileManager: FileManager = .default
         ) {
             self.url = url
-            
+
             self.encode = encode ?? { key, value in
                 try JSONEncoder().encode(Entry(key: key, value: value))
             }
-            
+
             self.decode = decode ?? { data in
                 let entry = try JSONDecoder().decode(Entry.self, from: data)
                 return (entry.key, entry.value)
             }
-            
+
             self.fileManager = fileManager
         }
 
@@ -221,7 +221,7 @@ extension FileCache {
     }
 }
 
-// MARK: - FileCacheError
+// MARK: - FileCacheFailure
 
 public enum FileCacheFailure: Error {
     case invalidCacheIdFileWithEqualNameAlreadyExists

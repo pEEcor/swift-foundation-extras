@@ -16,7 +16,7 @@ extension FileManager {
         let exists = self.fileExists(atPath: path, isDirectory: &isDirectory)
         return exists && isDirectory.boolValue
     }
-    
+
     /// Returns true if the given url points to a directory.
     ///
     /// - Parameter url: The url to check.
@@ -24,7 +24,7 @@ extension FileManager {
     public func directoryExists(at url: URL) -> Bool {
         self.directoryExists(atPath: url.path())
     }
-    
+
     /// Returns true if a file at the given url exists.
     ///
     /// - Parameter url: the url to check.

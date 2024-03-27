@@ -5,8 +5,8 @@
 //
 
 import Persistence
-import XCTest
 import TestExtras
+import XCTest
 
 final class FileCacheTests: XCTestCase {
     func testInit_shouldCreateCacheDirectory_whenNotPresent() throws {
@@ -32,17 +32,17 @@ final class FileCacheTests: XCTestCase {
     func testInit_shouldNotMakeCacheDirectory_whenPresent() throws {
         let expectation = expectation(description: "create-directory")
         expectation.isInverted = true
-        
+
         // GIVEN
         let id = UUID()
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         // Make the first cache.
         fileManager.onFileExists = { _ in false }
         fileManager.onCreateDirectory = { _ in }
         let _: FileCache<Int, Int> = try FileCache(id: id, config: config)
-        
+
         // WHEN
         // Make the second cache with the same id such that the directory already exists.
         fileManager.onFileExists = { _ in true }
@@ -52,23 +52,23 @@ final class FileCacheTests: XCTestCase {
         // THEN
         wait(for: [expectation], timeout: 0.5)
     }
-    
+
     func testInit_shouldInsertInitialValuesIntoCache_whenInitialValuesAreProvided() throws {
         let expectation = expectation(description: "write-file")
 
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
-        fileManager.onCreateFile = { path, data in
+        fileManager.onCreateFile = { _, data in
             let (key, value) = try! config.decode(data!)
             XCTAssertEqual(key, 1)
             XCTAssertEqual(value, 42)
             expectation.fulfill()
             return true
         }
-        
+
         // WHEN
         let _ = try FileCache(initialValues: [1: 42], config: config)
 
@@ -76,14 +76,13 @@ final class FileCacheTests: XCTestCase {
         wait(for: [expectation])
     }
 
-
     func testContent_containEmptyDictionary_whenCacheDirectoryDoesNotExist() throws {
         struct Failure: Error, Equatable {}
-        
+
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in false }
         fileManager.onCreateDirectory = { _ in }
         let cache = try FileCache(config: config)
@@ -102,7 +101,7 @@ final class FileCacheTests: XCTestCase {
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
 
@@ -110,20 +109,20 @@ final class FileCacheTests: XCTestCase {
         // gets requested from the filemanager.
         let results: [Int: Result<Data, Failure>] = [
             1.hashValue: .success(try! config.encode(1, 42)),
-            2.hashValue: .failure(Failure())
+            2.hashValue: .failure(Failure()),
         ]
-        
+
         // Define the paths that should be returned when reading the content of the cache directory.
         fileManager.onContentsOfDirectory = { directory in
             results.keys.map(String.init).map { directory.appending(path: $0) }
         }
-        
+
         // Return the respective result based on the requested key.
         fileManager.onContents = { path in
             let hashValue = Int(URL(filePath: path).lastPathComponent)!
             return try? results[hashValue]?.get()
         }
-        
+
         // WHEN
         let content = cache.content
 
@@ -138,7 +137,7 @@ final class FileCacheTests: XCTestCase {
         let id = UUID()
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         fileManager.onRemove = { url in
             XCTAssertEqual(url, config.url.appending(path: id.uuidString))
@@ -160,10 +159,10 @@ final class FileCacheTests: XCTestCase {
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
-        
+
         fileManager.onFileExists = { _ in false }
         fileManager.onRemove = { _ in expectation.fulfill() }
 
@@ -180,11 +179,11 @@ final class FileCacheTests: XCTestCase {
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
-        
-        fileManager.onCreateFile = { (path, data) in
+
+        fileManager.onCreateFile = { _, data in
             let (key, value) = try! config.decode(data!)
             XCTAssertEqual([key: value], [1: 42])
             expectation.fulfill()
@@ -197,15 +196,15 @@ final class FileCacheTests: XCTestCase {
         // THEN
         wait(for: [expectation])
     }
-    
+
     func testInsert_throwError_whenFileOperationFails() throws {
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
-        
+
         fileManager.onCreateFile = { _, _ in false }
 
         // WHEN
@@ -221,10 +220,10 @@ final class FileCacheTests: XCTestCase {
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
-        
+
         fileManager.onContents = { path in
             XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
             expectation.fulfill()
@@ -244,18 +243,18 @@ final class FileCacheTests: XCTestCase {
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
-        
+
         fileManager.onContents = { path in
             XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
             expectation.fulfill()
             return try! config.encode(1, 42)
         }
-        
-        fileManager.onRemove = { url in }
-        
+
+        fileManager.onRemove = { _ in }
+
         // WHEN
         _ = try cache.remove(forKey: 1)
 
@@ -270,18 +269,18 @@ final class FileCacheTests: XCTestCase {
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
-        
+
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
-        
+
         fileManager.onContents = { path in
             XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
             return try! config.encode(1, 42)
         }
-        
+
         fileManager.onFileExists = { _ in false }
-        fileManager.onRemove = { url in expectation.fulfill() }
-        
+        fileManager.onRemove = { _ in expectation.fulfill() }
+
         // WHEN
         _ = try cache.remove(forKey: 1)
 
