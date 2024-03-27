@@ -118,8 +118,8 @@ final class FileCacheTests: XCTestCase {
         }
 
         // Return the respective result based on the requested key.
-        fileManager.onContents = { path in
-            let hashValue = Int(URL(filePath: path).lastPathComponent)!
+        fileManager.onContents = { url in
+            let hashValue = Int(url.lastPathComponent)!
             return try? results[hashValue]?.get()
         }
 
@@ -224,8 +224,8 @@ final class FileCacheTests: XCTestCase {
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
 
-        fileManager.onContents = { path in
-            XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
+        fileManager.onContents = { url in
+            XCTAssertEqual(Int(url.lastPathComponent)!, 1.hashValue)
             expectation.fulfill()
             return try! config.encode(1, 42)
         }
@@ -247,8 +247,8 @@ final class FileCacheTests: XCTestCase {
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
 
-        fileManager.onContents = { path in
-            XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
+        fileManager.onContents = { url in
+            XCTAssertEqual(Int(url.lastPathComponent)!, 1.hashValue)
             expectation.fulfill()
             return try! config.encode(1, 42)
         }
@@ -273,8 +273,8 @@ final class FileCacheTests: XCTestCase {
         fileManager.onFileExists = { _ in true }
         let cache = try FileCache(config: config)
 
-        fileManager.onContents = { path in
-            XCTAssertEqual(Int(URL(filePath: path).lastPathComponent)!, 1.hashValue)
+        fileManager.onContents = { url in
+            XCTAssertEqual(Int(url.lastPathComponent)!, 1.hashValue)
             return try! config.encode(1, 42)
         }
 
