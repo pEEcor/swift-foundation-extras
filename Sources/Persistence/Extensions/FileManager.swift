@@ -7,6 +7,14 @@
 import Foundation
 
 extension FileManager {
+    /// Provides the Array with urls to all elements in this directory.
+    ///
+    /// - Parameter url: The url to the directory.
+    /// - Returns: Urls to all files inside the directory.
+    public func contentsOfDirectory(at url: URL) throws -> [URL] {
+        try self.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+    }
+    
     /// Returns true if the given path points to a directory.
     ///
     /// - Parameter path: The path to check.
