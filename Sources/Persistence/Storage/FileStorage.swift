@@ -13,7 +13,7 @@ import Foundation
 /// particular type of values which need to be codable.
 ///
 /// > Tip: If storage of multiple types is required, transform your values to a uniform type before
-/// storing them, i.e. ``Data``.
+/// storing them, i.e. `Swift.Data`.
 public class FileStorage<Value: Codable> {
     /// The configuration of the file storage.
     public let config: Config

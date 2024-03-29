@@ -7,4 +7,4 @@
 import Foundation
 import OSLog
 
-let logger = Logger(subsystem: "swift-foundation-extensions", category: "Persistence")
+let logger = Logger(subsystem: "swift-foundation-extras", category: "Persistence")

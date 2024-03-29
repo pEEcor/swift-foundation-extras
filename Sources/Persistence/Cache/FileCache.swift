@@ -11,7 +11,7 @@ import Foundation
 /// A cache that stores its values to the file system
 ///
 /// The cache stores values of a specific type. If different types need to be stored in the Cache,
-/// consider using the ``Data`` type as the cache's storage type.
+/// consider using the `Data` type as the cache's storage type.
 ///
 /// The ``FileCache`` does not give any guarantee about the duration of element storage inside the
 /// cache. According to the availability of system resources, elements may be evicted from the cache
@@ -177,7 +177,7 @@ extension FileCache {
         /// Location where the cache should be placed on the file system.
         public let url: URL
 
-        /// Encoder to encode cache entry into ``Data`` object.
+        /// Encoder to encode cache entry into `Data` object.
         public let encode: (Key, Value) throws -> Data
 
         /// Decoder to decode data object into cache entiry.
@@ -191,7 +191,7 @@ extension FileCache {
         ///
         /// - Parameters:
         ///   - url: Location where the cache should be placed on the file system
-        ///   - encode: Encoder to encode cache entry into ``Data`` object
+        ///   - encode: Encoder to encode cache entry into `Data` object
         ///   - decode: Decoder to decode data object into cache entiry
         ///   - fileSystemAccessor: A file system accessor
         public init(

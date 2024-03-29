@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - NSCache + Sendable
 
-/// This extension should be save, since Appls explicitly mentions the thread safety of ``NSCache``
+/// This extension should be save, since Appls explicitly mentions the thread safety of `NSCache`
 /// in its documentaion.
 extension NSCache: @unchecked Sendable {}
 
@@ -17,7 +17,7 @@ extension NSCache: @unchecked Sendable {}
 /// A cache that places its elements in the main memory
 ///
 /// The cache stores values of a specific type. If different types need to be stored in the Cache,
-/// consider using the ``Data`` type as the cache's storage type.
+/// consider using the `Data` type as the cache's storage type.
 ///
 /// The ``FileCache`` does not give any guarantee about the duration of element storage inside the
 /// cache. According to the availability of system resources, elements may be evicted from the cache
