@@ -15,10 +15,10 @@ final class UserDefaultsTests: XCTestCase {
         
         // GIVEN
         let defaults = UserDefaults()
-        defaults.set(Foo(value: 42), for: "1")
+        defaults.set(Foo(value: 42), for: 1)
         
         // WHEN
-        let output: Foo? = defaults.get(for: "1")
+        let output: Foo? = defaults.get(for: 1)
         
         // THEN
         XCTAssertEqual(output, Foo(value: 42))
@@ -31,7 +31,7 @@ final class UserDefaultsTests: XCTestCase {
         let defaults = UserDefaults()
         
         // WHEN
-        let output: Foo? = defaults.get(for: "2")
+        let output: Foo? = defaults.get(for: 2)
         
         // THEN
         XCTAssertNil(output)
@@ -44,7 +44,7 @@ final class UserDefaultsTests: XCTestCase {
         let defaults = UserDefaults()
         
         // WHEN
-        let output: Foo? = defaults.get(for: "3", default: Foo(value: 43))
+        let output: Foo? = defaults.get(for: 3, default: Foo(value: 43))
         
         // THEN
         XCTAssertEqual(output, Foo(value: 43))
