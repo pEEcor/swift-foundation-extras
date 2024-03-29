@@ -35,14 +35,14 @@ public final class MockFileManager: FileManager {
         unimplemented("MockFileManager.onFileExists")
 
     /// Action that is executed when file at url is deleted
-    public var onRemove: (URL) throws -> Void =
+    public var onRemoveItem: (URL) throws -> Void =
         unimplemented("MockFileManager.onRemove")
 
     /// Creates a `MockFileManager`.
     override public init() {
         super.init()
     }
-    
+
     override public func contents(atPath path: String) -> Data? {
         self.onContents(URL(fileURLWithPath: path, isDirectory: true))
     }
@@ -83,6 +83,6 @@ public final class MockFileManager: FileManager {
     }
 
     override public func removeItem(at url: URL) throws {
-        try self.onRemove(url)
+        try self.onRemoveItem(url)
     }
 }

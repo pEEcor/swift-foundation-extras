@@ -14,7 +14,25 @@ extension FileManager {
     public func contentsOfDirectory(at url: URL) throws -> [URL] {
         try self.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
     }
-    
+
+    /// Writes data into file at the given location.
+    ///
+    /// When a file exists at the given url, that file will be overriden with the new data.
+    ///
+    /// - Parameters:
+    ///   - url: The location where the file should be stored.
+    ///   - data: The data that should be stored.
+    ///   - attr: Attributes for the file.
+    /// - Returns: True when the creation succeeds, otherwise false.
+    @discardableResult
+    public func createFile(
+        at url: URL,
+        contents data: Data?,
+        attributes attr: [FileAttributeKey: Any]? = nil
+    ) -> Bool {
+        self.createFile(atPath: url.path(), contents: data, attributes: attr)
+    }
+
     /// Returns true if the given path points to a directory.
     ///
     /// - Parameter path: The path to check.

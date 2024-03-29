@@ -128,7 +128,7 @@ extension FileCache: Cache {
 
         // Prior to writing to the cache, there is no check if the file exists already. That means
         // that the old content will be replaced with the new content.
-        guard self.config.fileManager.createFile(atPath: url.path(), contents: data) else {
+        guard self.config.fileManager.createFile(at: url, contents: data) else {
             throw FileCacheFailure.insufficientPermissions
         }
     }

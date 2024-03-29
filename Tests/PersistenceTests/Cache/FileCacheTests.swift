@@ -139,7 +139,7 @@ final class FileCacheTests: XCTestCase {
         let config = FileCache<Int, Int>.Config(fileManager: fileManager)
 
         fileManager.onFileExists = { _ in true }
-        fileManager.onRemove = { url in
+        fileManager.onRemoveItem = { url in
             XCTAssertEqual(url, config.url.appending(path: id.uuidString))
             expectation.fulfill()
         }
@@ -164,7 +164,7 @@ final class FileCacheTests: XCTestCase {
         let cache = try FileCache(config: config)
 
         fileManager.onFileExists = { _ in false }
-        fileManager.onRemove = { _ in expectation.fulfill() }
+        fileManager.onRemoveItem = { _ in expectation.fulfill() }
 
         // WHEN
         cache.clear()
@@ -253,7 +253,7 @@ final class FileCacheTests: XCTestCase {
             return try! config.encode(1, 42)
         }
 
-        fileManager.onRemove = { _ in }
+        fileManager.onRemoveItem = { _ in }
 
         // WHEN
         _ = try cache.remove(forKey: 1)
@@ -279,7 +279,7 @@ final class FileCacheTests: XCTestCase {
         }
 
         fileManager.onFileExists = { _ in false }
-        fileManager.onRemove = { _ in expectation.fulfill() }
+        fileManager.onRemoveItem = { _ in expectation.fulfill() }
 
         // WHEN
         _ = try cache.remove(forKey: 1)
