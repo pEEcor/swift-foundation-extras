@@ -7,7 +7,7 @@
 import Foundation
 
 extension UserDefaults {
-    /// Returns the given type from user defaults
+    /// Returns the given type from user defaults.
     ///
     /// - Parameter key: Unique key
     /// - Returns: Value if present, otherwise nil
@@ -20,11 +20,11 @@ extension UserDefaults {
         return try? JSONDecoder().decode(T.self, from: data)
     }
 
-    /// Returns the given type from user defaults
+    /// Returns the given type from user defaults.
     ///
     /// - Parameter key: Unique key
     /// - Parameter default: Default value
-    /// - Returns: Value if present, otherwise default value
+    /// - Returns: Value if present, otherwise default value.
     public func get<T: Decodable>(
         for key: String,
         default: T
@@ -32,9 +32,9 @@ extension UserDefaults {
         return self.get(for: key) ?? `default`
     }
 
-    /// Stores a value to user defaults
+    /// Stores a value to user defaults.
     ///
-    /// - Parameter value: Value to store, needs to be codable
+    /// - Parameter value: Value to store, needs to be codable.
     /// - Parameter key: Unique key
     ///
     public func set<T: Encodable>(_ value: T, for key: String) {
