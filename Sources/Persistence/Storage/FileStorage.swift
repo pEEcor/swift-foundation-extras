@@ -36,9 +36,9 @@ public class FileStorage<Value: Codable> {
 // MARK: Storage
 
 extension FileStorage: Storage {
-    public func create(
-        name: String,
-        value: Value
+    public func insert(
+        value: Value,
+        named name: String
     ) throws {
         let fileUrl = try self.makeURL(for: name)
         guard !self.config.fileManager.fileExists(at: fileUrl) else {
@@ -61,7 +61,7 @@ extension FileStorage: Storage {
         try self.config.encode(value).write(to: fileUrl)
     }
 
-    public func delete(
+    public func remove(
         name: String
     ) throws {
         let url = try self.makeURL(for: name)
@@ -76,7 +76,7 @@ extension FileStorage: Storage {
         try self.config.fileManager.removeItem(at: url)
     }
 
-    public func delete() throws {
+    public func clear() throws {
         guard self.config.fileManager.fileExists(at: self.config.url) else {
             return
         }
@@ -135,8 +135,8 @@ extension FileStorage: Storage {
     }
 
     public func update(
-        name: String,
-        value: Value
+        value: Value,
+        named name: String
     ) throws {
         let url = try self.makeURL(for: name)
 
@@ -145,13 +145,13 @@ extension FileStorage: Storage {
             let prev = try self.read(name: name)
 
             // Update stored value to the new value.
-            try self.delete(name: name)
-            try self.create(name: name, value: value)
+            try self.remove(name: name)
+            try self.insert(value: value, named: name)
 
             // Notify observers.
             self.observerManager.notify(prev: prev, next: value)
         } else {
-            try self.create(name: name, value: value)
+            try self.insert(value: value, named: name)
         }
     }
 

@@ -20,15 +20,15 @@ public protocol Storage<Value> {
     ///
     /// - Parameter name: Name to store the value under.
     /// - Parameter value: Value that should be stored.
-    func create(name: String, value: Value) throws
+    func insert(value: Value, named: String) throws
 
     /// Deletes value from storage.
     ///
     /// - Parameter name: Name of value.
-    func delete(name: String) throws
+    func remove(name: String) throws
 
-    /// Deletes all values
-    func delete() throws
+    /// Deletes all values.
+    func clear() throws
 
     /// Provides an async sequence that emits events whenever the value at the specified key path
     /// changes.
@@ -56,7 +56,7 @@ public protocol Storage<Value> {
     ///
     /// - Parameter name: Name to store value under
     /// - Parameter value: Value that should be stored
-    func update(name: String, value: Value) throws
+    func update(value: Value, named: String) throws
 }
 
 // MARK: - StorageEvent

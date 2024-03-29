@@ -21,15 +21,15 @@ public class MemoryStorage<Value: Codable> {
 // MARK: Storage
 
 extension MemoryStorage: Storage {
-    public func create(name: String, value: Value) throws {
+    public func insert(value: Value, named name: String) throws {
         self.storage.withValue { $0[name] = value }
     }
 
-    public func delete(name: String) throws {
+    public func remove(name: String) throws {
         self.storage.withValue { $0[name] = nil }
     }
 
-    public func delete() throws {
+    public func clear() throws {
         self.storage.withValue { $0.removeAll() }
     }
 
@@ -52,8 +52,8 @@ extension MemoryStorage: Storage {
         return self.storage.values.map { $0 }
     }
 
-    public func update(name: String, value: Value) throws {
-        try self.create(name: name, value: value)
+    public func update(value: Value, named name: String) throws {
+        try self.insert(value: value, named: name)
     }
 }
 
