@@ -13,13 +13,10 @@ import Foundation
 /// particular type of values which need to be codable.
 ///
 /// > Tip: If storage of multiple types is required, transform your values to a uniform type before
-/// storing them, i.e. `Swift.Data`.
-public class FileStorage<Value: Codable> {
+/// storing them, i.e. `Data`.
+public class FileStorage<Key: Codable & Hashable, Value: Codable> {
     /// The configuration of the file storage.
     public let config: Config
-
-    /// Manager that handles all observers of this file storage.
-    private let observerManager: ObserverManager
 
     // MARK: - Init
 
@@ -29,156 +26,123 @@ public class FileStorage<Value: Codable> {
         config: Config
     ) {
         self.config = config
-        self.observerManager = ObserverManager()
     }
 }
 
 // MARK: Storage
 
 extension FileStorage: Storage {
+    public var keys: [Key] {
+        // Make sure that the target directory exists, otherwise return empty array.
+        guard self.config.fileManager.fileExists(at: self.config.url) else {
+            return []
+        }
+
+        // Get urls to all files that are managed by the filemanager.
+        guard let urls = try? self.config.fileManager.contentsOfDirectory(at: self.config.url) else {
+            return []
+        }
+
+        // Transform the urls into actual keys.
+        return urls.compactMap { try? self.makeKey(for: $0) }
+    }
+
     public func insert(
         value: Value,
-        named name: String
+        for key: Key
     ) throws {
-        let fileUrl = try self.makeURL(for: name)
+        // Make the url that will be used to store the value.
+        let fileUrl = try self.makeUrl(for: key)
+        
+        // Make sure that the file does not exist yet.
         guard !self.config.fileManager.fileExists(at: fileUrl) else {
-            throw Error.fileAlreadyExists
+            throw FileStorageFailure.fileAlreadyExists
         }
-
-        // Create url without filename component.
-        let folderUrl = fileUrl.deletingLastPathComponent()
 
         // Check if target directory exists.
-        if !self.config.fileManager.directoryExists(at: folderUrl) {
-            // Create target directory that holds the values of this FileStorage.
-            try self.config.fileManager
-                .createDirectory(at: folderUrl, withIntermediateDirectories: false)
-        }
+        try self.makeStorageDirectoryIfRequired()
 
+        // Encode the value.
+        let data = try self.config.valueCoder.encode(value)
+        
         logger.info("Writing \(Value.self) to \(fileUrl)")
 
-        // Encode and write value
-        try self.config.encode(value).write(to: fileUrl)
+        // Write the data to the filesystem.
+        guard self.config.fileManager.createFile(at: fileUrl, contents: data) else {
+            throw FileStorageFailure.writeFailure
+        }
     }
 
     public func remove(
-        name: String
+        for key: Key
     ) throws {
-        let url = try self.makeURL(for: name)
+        // Make the url that will be used to store the value.
+        let url = try self.makeUrl(for: key)
 
-        // Deletion is gracefully ignored if file or directory does not exist
+        // Deletion is gracefully ignored if file or directory does not exist.
         guard self.config.fileManager.fileExists(at: url) else {
             return
         }
 
         logger.info("Deleting \(Value.self) \(url)")
 
+        // Remove the file from the filesystem.
         try self.config.fileManager.removeItem(at: url)
     }
 
-    public func clear() throws {
-        guard self.config.fileManager.fileExists(at: self.config.url) else {
-            return
-        }
-
-        logger.info("Deleting directory \(self.config.url)")
-
-        try self.config.fileManager.removeItem(at: self.config.url)
-    }
-
-    public func observe<Element: Equatable>(
-        keyPath: KeyPath<Value, Element>
-    ) -> AsyncStream<StorageEvent<Element>> {
-        AsyncStream<StorageEvent<Element>> { continuation in
-            // Register termination action. This ensures that the observation gets removed
-            // automatically when the callsite drops the returned stream.
-            continuation.onTermination = { _ in self.observerManager.remove(keyPath: keyPath) }
-
-            // Add observer
-            self.observerManager.add(
-                keyPath: keyPath,
-                emit: { continuation.yield($0) },
-                finish: { continuation.finish() }
-            )
-        }
-    }
-
-    public func read(
-        name: String
+    public func value(
+        for key: Key
     ) throws -> Value {
-        let url = try self.makeURL(for: name)
+        // Make the url that will be used to store the value.
+        let url = try self.makeUrl(for: key)
+        
+        // Make sure that the file exists.
+        guard self.config.fileManager.fileExists(at: url) else {
+            throw FileStorageFailure.fileDoesNotExist
+        }
 
         logger.info("Reading \(Value.self) from \(url)")
 
-        return try self.config.decode(self.read(url: url))
-    }
-
-    public func read() throws -> [Value] {
-        // Make sure that the target directory exists, otherwise return empty array
-        guard self.config.fileManager.fileExists(at: self.config.url) else {
-            return []
+        // Make sure that the file exists.
+        guard let data = self.config.fileManager.contents(at: url) else {
+            throw FileStorageFailure.readFailure
         }
-
-        // Read in all files from target directory and filter out the contained directories
-        let urls = try self.config.fileManager
-            .contentsOfDirectory(at: self.config.url)
-            .filter { !self.config.fileManager.directoryExists(at: $0) }
-
-        logger.info("Reading \(Value.self)'s from \(self.config.url)")
-
-        // Read in all files and try to decode them. If decoding fails, the file will be gracefully
-        // ignored and not returned in the output of this function
-        return try urls.compactMap { url in
-            let data = try self.read(url: url)
-            return try? self.config.decode(data)
-        }
-    }
-
-    public func update(
-        value: Value,
-        named name: String
-    ) throws {
-        let url = try self.makeURL(for: name)
-
-        if self.config.fileManager.fileExists(at: url) {
-            // Remember the previous value.
-            let prev = try self.read(name: name)
-
-            // Update stored value to the new value.
-            try self.remove(name: name)
-            try self.insert(value: value, named: name)
-
-            // Notify observers.
-            self.observerManager.notify(prev: prev, next: value)
-        } else {
-            try self.insert(value: value, named: name)
-        }
+        
+        // Decode the data into the Type of the storage.
+        return try self.config.valueCoder.decode(Value.self, from: data)
     }
 
     // MARK: - Private
 
-    /// Create url
-    ///
-    /// - Parameter fileName: Name of file
-    /// - Parameter dirName: Name of directory inside documents folder
-    private func makeURL(
-        for name: String
-    ) throws -> URL {
-        return self.config.url.appendingPathComponent(name)
+    private func encodeKey(key: Key) throws -> String {
+        try self.config.keyCoder.encode(key).base64EncodedString()
     }
 
-    /// Reads specific data from filesystem
-    ///
-    /// - Parameter url: URL to file
-    /// - returns: Data object of file
-    private func read(
-        url: URL
-    ) throws -> Data {
-        guard self.config.fileManager.fileExists(at: url) else {
-            throw Error.fileDoesNotExist
+    private func decodeKey(_ base64EncodedString: String) throws -> Key {
+        guard let data = Data(base64Encoded: base64EncodedString) else {
+            throw FileStorageFailure.invalidEncoding
         }
 
-        return try Data(contentsOf: url)
+        return try self.config.keyCoder.decode(Key.self, from: data)
+    }
+
+    private func makeUrl(for key: Key) throws -> URL {
+        try self.config.url.appending(path: self.encodeKey(key: key))
+    }
+
+    private func makeKey(for url: URL) throws -> Key {
+        try self.decodeKey(url.lastPathComponent)
+    }
+    
+    private func makeStorageDirectoryIfRequired() throws {
+        // Make sure that the directory does not exist.
+        guard !self.config.fileManager.directoryExists(at: self.config.url) else {
+            return
+        }
+
+        // Create storage directory.
+        try self.config.fileManager
+            .createDirectory(at: self.config.url, withIntermediateDirectories: true)
     }
 }
 
@@ -186,37 +150,36 @@ extension FileStorage: Storage {
 
 extension FileStorage {
     public struct Config {
-        /// A file system accessor
+        /// The url to use for file storage.
+        public let url: URL
+        
+        /// A FileManager that handles all access to the filesystem.
         let fileManager: FileManager
 
-        /// The url to use for file storage
-        public let url: URL
+        /// The coder that is used to transform the values for storage.
+        let keyCoder: JSONCoder
 
-        let decode: (Data) throws -> Value
-        let encode: (Value) throws -> Data
+        /// The coder that is used to transform the keys for storage.
+        let valueCoder: JSONCoder
 
         // MARK: - Init
 
-        /// Creates a FileStorage
+        /// Creates config for a `FileStorage`.
+        ///
         /// - Parameters:
-        ///   - url: The url where the files of this storage should be stored at
-        ///   - decode: A decoding function that decodes data objects into the type that this
-        ///   storage handles
-        ///   - encode: An encoding function that encodes the type that this storage handles into a
-        ///   data object
-        ///   - fileManager: The filemanager that is used for this storage
+        ///   - url: The url where the files of this storage should be stored at data object.
+        ///   - keyCoder: The coder to encode and decode keys.
+        ///   - valueCoder: The coder to encode and decode values.
+        ///   - fileManager: The filemanager that is used for this storage.
         public init(
             url: URL = URL.documentsDirectory,
-            encode: @escaping (Value) throws -> Data = { try JSONEncoder().encode($0) },
-            decode: @escaping (Data) throws -> Value = { try JSONDecoder().decode(
-                Value.self,
-                from: $0
-            ) },
+            keyCoder: JSONCoder? = nil,
+            valueCoder: JSONCoder? = nil,
             fileManager: FileManager = .default
         ) {
             self.url = url
-            self.decode = decode
-            self.encode = encode
+            self.keyCoder = keyCoder ?? JSONCoder()
+            self.valueCoder = valueCoder ?? JSONCoder()
             self.fileManager = fileManager
         }
 
@@ -227,15 +190,15 @@ extension FileStorage {
     }
 }
 
-// MARK: FileStorage.Error
+// MARK: - FileStorageFailure
 
-extension FileStorage {
-    enum Error: Swift.Error {
-        case fileAlreadyExists
-        case invalidDirectory
-        case writingFailed
-        case fileDoesNotExist
-        case readingFailed
-        case migrationFailed
-    }
+
+public enum FileStorageFailure: Error {
+    case invalidEncoding
+    case fileAlreadyExists
+    case invalidDirectory
+    case writeFailure
+    case fileDoesNotExist
+    case readFailure
+    case migrationFailed
 }

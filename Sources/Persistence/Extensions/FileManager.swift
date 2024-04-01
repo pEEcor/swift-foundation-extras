@@ -7,6 +7,15 @@
 import Foundation
 
 extension FileManager {
+    /// Returns a `Data` object that contains the file content at the given url.
+    ///
+    /// If no file exists a the given url, nil is returned.
+    /// - Parameter url: Url to the desired file.
+    /// - Returns: Data object.
+    public func contents(at url: URL) -> Data? {
+        self.contents(atPath: url.path())
+    }
+    
     /// Provides the Array with urls to all elements in this directory.
     ///
     /// - Parameter url: The url to the directory.
