@@ -140,7 +140,7 @@ final class FileStorageTests: XCTestCase {
     func testValue_returnValue_whenItExists() throws {
         // GIVEN
         let fileManager = MockFileManager()
-        let valueCoder = JSONCoder()
+        let valueCoder: AnyCoder<Data> = JSONCoder().eraseToAnyCoder()
         let config = FileStorage<Int, Int>.Config(valueCoder: valueCoder, fileManager: fileManager)
         let storage = FileStorage(config: config)
         

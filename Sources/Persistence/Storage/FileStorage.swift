@@ -115,15 +115,11 @@ extension FileStorage: Storage {
     // MARK: - Private
 
     private func encodeKey(key: Key) throws -> String {
-        try self.config.keyCoder.encode(key).base64EncodedString()
+        try self.config.keyCoder.encode(key)
     }
 
     private func decodeKey(_ base64EncodedString: String) throws -> Key {
-        guard let data = Data(base64Encoded: base64EncodedString) else {
-            throw FileStorageFailure.invalidEncoding
-        }
-
-        return try self.config.keyCoder.decode(Key.self, from: data)
+        try self.config.keyCoder.decode(from: base64EncodedString)
     }
 
     private func makeUrl(for key: Key) throws -> URL {
@@ -157,10 +153,10 @@ extension FileStorage {
         let fileManager: FileManager
 
         /// The coder that is used to transform the values for storage.
-        let keyCoder: JSONCoder
+        let keyCoder: AnyTypedCoder<String, Key>
 
         /// The coder that is used to transform the keys for storage.
-        let valueCoder: JSONCoder
+        let valueCoder: AnyCoder<Data>
 
         // MARK: - Init
 
@@ -173,13 +169,16 @@ extension FileStorage {
         ///   - fileManager: The filemanager that is used for this storage.
         public init(
             url: URL = URL.documentsDirectory,
-            keyCoder: JSONCoder? = nil,
-            valueCoder: JSONCoder? = nil,
+            keyCoder: AnyTypedCoder<String, Key>? = nil,
+            valueCoder: AnyCoder<Data>? = nil,
             fileManager: FileManager = .default
         ) {
             self.url = url
             self.keyCoder = keyCoder ?? JSONCoder()
-            self.valueCoder = valueCoder ?? JSONCoder()
+                .typed(to: Key.self)
+                .base64String()
+            
+            self.valueCoder = valueCoder ?? JSONCoder().eraseToAnyCoder()
             self.fileManager = fileManager
         }
 

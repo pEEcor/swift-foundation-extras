@@ -9,7 +9,9 @@ import Foundation
 
 // MARK: - JSONCoder
 
-public class JSONCoder {
+public class JSONCoder: Coder {
+    public typealias Output = Data
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
@@ -30,8 +32,8 @@ public class JSONCoder {
     }
 }
 
-// MARK: Coder
-
-extension JSONCoder: Coder {
-    public typealias Value = Data
+extension JSONCoder {
+    public var json: AnyCoder<Data> {
+        JSONCoder().eraseToAnyCoder()
+    }
 }
