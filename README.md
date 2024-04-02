@@ -50,4 +50,4 @@ The latest documentation for this library is available [here][documentation].
 
 This library is released under the MIT license. See [LICENSE](LICENSE) for details.
 
-[documentation]: https://peecor.github.io/swift-foundation-extras/main/documentation/combineextras/
+[documentation]: https://peecor.github.io/swift-foundation-extras/main/documentation/foundationextras/
