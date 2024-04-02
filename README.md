@@ -29,7 +29,8 @@ This library comes with a couple of tools that are often needed during app devel
 platforms. It extends various existing types and also introduces new tools for:
     
 - Caching
-- Persistence to disk
+- Persistence
+- Coding
 
 ## Installation via SPM
 
