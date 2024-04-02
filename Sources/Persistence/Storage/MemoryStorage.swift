@@ -34,34 +34,37 @@ extension MemoryStorage: Storage {
         self.storage.keys.map { $0 }
     }
 
-    public func clear() throws {
-        self.storage.withValue { $0.removeAll() }
-    }
-
     public func insert(value: Value, for key: Key) throws {
-        self.storage.withValue { $0[key] = value }
+        try self.storage.withValue { storage in
+            // Make sure that the key does not exist yet inside the storage.
+            guard !storage.keys.contains(key) else {
+                throw MemoryStorageError.keyAlreadyExists
+            }
+            
+            storage[key] = value
+        }
     }
 
     public func remove(for key: Key) throws {
         self.storage.withValue { $0[key] = nil }
     }
 
-    public func update(value: Value, for key: Key) throws {
-        try self.insert(value: value, for: key)
-    }
-
     public func value(for key: Key) throws -> Value {
-        guard let value = storage[key] else {
-            throw MemoryStorageError.dataNotFound
+        // Make sure that the storage contains the given key.
+        guard let value = self.storage[key] else {
+            throw MemoryStorageError.keyDoesNotExist
         }
+        
         return value
     }
 }
 
 // MARK: MemoryStorage.MemoryStorageError
 
-extension MemoryStorage {
-    enum MemoryStorageError: String, Error {
-        case dataNotFound
-    }
+public enum MemoryStorageError: String, Error {
+    /// Indicates that the storage contains no key-value pair for a specific key.
+    case keyDoesNotExist
+    
+    /// Indicates that the storage already contains a key-value pair with a specific key.
+    case keyAlreadyExists
 }
