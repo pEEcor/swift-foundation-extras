@@ -4,7 +4,7 @@
 //  Copyright © 2024 Paavo Becker.
 //
 
-import Persistence
+import FoundationExtras
 import XCTest
 
 final class StorageTests: XCTestCase {

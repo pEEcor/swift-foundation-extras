@@ -65,8 +65,6 @@ extension FileStorage: Storage {
         // Encode the value.
         let data = try self.config.valueCoder.encode(value)
 
-        logger.info("Writing \(Value.self) to \(fileUrl)")
-
         // Write the data to the filesystem.
         guard self.config.fileManager.createFile(at: fileUrl, contents: data) else {
             throw FileStorageFailure.writeFailure
@@ -84,8 +82,6 @@ extension FileStorage: Storage {
             return
         }
 
-        logger.info("Deleting \(Value.self) \(url)")
-
         // Remove the file from the filesystem.
         try self.config.fileManager.removeItem(at: url)
     }
@@ -100,8 +96,6 @@ extension FileStorage: Storage {
         guard self.config.fileManager.fileExists(at: url) else {
             throw FileStorageFailure.fileDoesNotExist
         }
-
-        logger.info("Reading \(Value.self) from \(url)")
 
         // Make sure that the file exists.
         guard let data = self.config.fileManager.contents(at: url) else {

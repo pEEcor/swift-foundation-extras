@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Persistence
+import FoundationExtras
 import XCTest
 
 final class FileManagerTests: XCTestCase {

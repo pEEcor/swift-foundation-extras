@@ -5,8 +5,7 @@
 //
 
 import Foundation
-import Persistence
-import TestExtras
+import FoundationExtras
 import XCTest
 
 final class FileStorageTests: XCTestCase {

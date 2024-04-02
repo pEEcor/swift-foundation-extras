@@ -4,8 +4,7 @@
 //  Copyright © 2024 Paavo Becker.
 //
 
-import Persistence
-import TestExtras
+import FoundationExtras
 import XCTest
 
 final class FileCacheTests: XCTestCase {
