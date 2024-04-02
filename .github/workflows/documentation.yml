@@ -44,7 +44,7 @@ jobs:
             then 
               echo "✅ Documentation for "$tag" already exists.";
             else 
-              echo "⏳ Generating documentation for SwiftFoundationExtras @ "$tag" release.";
+              echo "⏳ Generating documentation for FoundationExtras @ "$tag" release.";
               rm -rf "docs/$tag";
 
               git checkout .;
@@ -53,12 +53,12 @@ jobs:
               swift package \
                 --allow-writing-to-directory docs/"$tag" \
                 generate-documentation \
-                --target SwiftFoundationExtras \
+                --target FoundationExtras \
                 --output-path docs/"$tag" \
                 --transform-for-static-hosting \
                 --hosting-base-path /swift-foundation-extras/"$tag" \
-                && echo "✅ Documentation generated for SwiftFoundationExtras @ "$tag" release." \
-                || echo "⚠️ Documentation skipped for SwiftFoundationExtras @ "$tag".";
+                && echo "✅ Documentation generated for FoundationExtras @ "$tag" release." \
+                || echo "⚠️ Documentation skipped for FoundationExtras @ "$tag".";
             fi;
           done
 
