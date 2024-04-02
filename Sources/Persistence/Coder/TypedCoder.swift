@@ -1,11 +1,12 @@
 //
 //  TypedCoder.swift
-//  
 //
-//  Created by Paavo Becker on 01.04.24.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import Foundation
+
+// MARK: - TypedCoder
 
 /// A protocol similar to ``Coder``, that not only specifies the output type of the encode operation
 /// but also the input type.
@@ -16,7 +17,7 @@ import Foundation
 public protocol TypedCoder<Encoded, Decoded> {
     /// The type that is produced by the encode operation and that is fed into the decode operation.
     associatedtype Encoded
-    
+
     /// The type that is produced by the decode operation and that is fed into the encode operation.
     associatedtype Decoded: Codable
 
@@ -25,7 +26,7 @@ public protocol TypedCoder<Encoded, Decoded> {
     /// - Parameter value: The value that should be encoded.
     /// - Returns: The encoded value.
     func encode(_ value: Decoded) throws -> Encoded
-    
+
     /// Decodes the given value.
     ///
     /// - Parameter value: The value that should be decoded.
@@ -33,11 +34,13 @@ public protocol TypedCoder<Encoded, Decoded> {
     func decode(from value: Encoded) throws -> Decoded
 }
 
+// MARK: - AnyTypedCoder
+
 /// A type-erasing wrapper for typed coders.
 public class AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
     private let onEncode: (Decoded) throws -> Encoded
     private let onDecode: (Encoded) throws -> Decoded
-    
+
     /// Creates a type-erasing wrapper for typed coders.
     /// - Parameters:
     ///   - encode: The encoding operation.
@@ -53,18 +56,18 @@ public class AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
     public func encode(_ value: Decoded) throws -> Encoded {
         try self.onEncode(value)
     }
-    
+
     public func decode(from value: Encoded) throws -> Decoded {
         try self.onDecode(value)
     }
-    
+
     /// Creates a type-erasing wrapper around any other typed coder.
     ///
     /// - Parameter coder: The typed coder.
     public convenience init(coder: any TypedCoder<Encoded, Decoded>) {
         self.init(encode: coder.encode, decode: coder.decode)
     }
-    
+
     /// Creates a type-erasing wrapper around any other non-typed coder.
     ///
     /// - Parameters:

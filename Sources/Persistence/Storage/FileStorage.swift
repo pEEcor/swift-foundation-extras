@@ -53,7 +53,7 @@ extension FileStorage: Storage {
     ) throws {
         // Make the url that will be used to store the value.
         let fileUrl = try self.makeUrl(for: key)
-        
+
         // Make sure that the file does not exist yet.
         guard !self.config.fileManager.fileExists(at: fileUrl) else {
             throw FileStorageFailure.fileAlreadyExists
@@ -64,7 +64,7 @@ extension FileStorage: Storage {
 
         // Encode the value.
         let data = try self.config.valueCoder.encode(value)
-        
+
         logger.info("Writing \(Value.self) to \(fileUrl)")
 
         // Write the data to the filesystem.
@@ -95,7 +95,7 @@ extension FileStorage: Storage {
     ) throws -> Value {
         // Make the url that will be used to store the value.
         let url = try self.makeUrl(for: key)
-        
+
         // Make sure that the file exists.
         guard self.config.fileManager.fileExists(at: url) else {
             throw FileStorageFailure.fileDoesNotExist
@@ -107,7 +107,7 @@ extension FileStorage: Storage {
         guard let data = self.config.fileManager.contents(at: url) else {
             throw FileStorageFailure.readFailure
         }
-        
+
         // Decode the data into the Type of the storage.
         return try self.config.valueCoder.decode(Value.self, from: data)
     }
@@ -129,7 +129,7 @@ extension FileStorage: Storage {
     private func makeKey(for url: URL) throws -> Key {
         try self.decodeKey(url.lastPathComponent)
     }
-    
+
     private func makeStorageDirectoryIfRequired() throws {
         // Make sure that the directory does not exist.
         guard !self.config.fileManager.directoryExists(at: self.config.url) else {
@@ -148,7 +148,7 @@ extension FileStorage {
     public struct Config {
         /// The url to use for file storage.
         public let url: URL
-        
+
         /// A FileManager that handles all access to the filesystem.
         let fileManager: FileManager
 
@@ -177,7 +177,7 @@ extension FileStorage {
             self.keyCoder = keyCoder ?? JSONCoder()
                 .typed(to: Key.self)
                 .base64String()
-            
+
             self.valueCoder = valueCoder ?? JSONCoder().eraseToAnyCoder()
             self.fileManager = fileManager
         }
@@ -190,7 +190,6 @@ extension FileStorage {
 }
 
 // MARK: - FileStorageFailure
-
 
 public enum FileStorageFailure: Error {
     case invalidEncoding

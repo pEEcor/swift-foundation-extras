@@ -11,7 +11,7 @@ import Foundation
 
 public class JSONCoder: Coder {
     public typealias Output = Data
-    
+
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 

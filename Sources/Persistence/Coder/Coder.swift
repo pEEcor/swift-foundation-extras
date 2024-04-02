@@ -7,6 +7,8 @@
 import Combine
 import Foundation
 
+// MARK: - Coder
+
 /// A protocol that defines how values can be encoded and decoded from and into the same type.
 ///
 /// The generic argument of the protocol declares the type that a coder's encode operation will
@@ -17,22 +19,24 @@ public protocol Coder<Output>: TopLevelEncoder, TopLevelDecoder
     associatedtype Output
 }
 
+// MARK: - AnyCoder
+
 /// Type-erased wrapper for Coders.
 public class AnyCoder<Output>: Coder {
-    // The embedded coder that handles the actual coding.
+    /// The embedded coder that handles the actual coding.
     private let coder: any Coder<Output>
-    
+
     /// Creates a type-erased Coder from any other coder.
     /// - Parameter coder: The type-erased coder.
     public init(coder: any Coder<Output>) {
         self.coder = coder
     }
-    
-    public func encode<T>(_ value: T) throws -> Output where T : Encodable {
+
+    public func encode<T>(_ value: T) throws -> Output where T: Encodable {
         try self.coder.encode(value)
     }
-    
-    public func decode<T>(_ type: T.Type, from value: Output) throws -> T where T : Decodable {
+
+    public func decode<T>(_ type: T.Type, from value: Output) throws -> T where T: Decodable {
         try self.coder.decode(type, from: value)
     }
 }
@@ -44,7 +48,7 @@ extension Coder {
     public func eraseToAnyCoder() -> AnyCoder<Output> {
         AnyCoder(coder: self)
     }
-    
+
     /// Converts coder into a typed coder.
     ///
     /// The type configures the input type that is used by the typed coder for the encode operation.

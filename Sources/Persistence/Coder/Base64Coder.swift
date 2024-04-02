@@ -1,16 +1,17 @@
 //
 //  Base64Coder.swift
 //
-//
-//  Created by Paavo Becker on 01.04.24.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import Foundation
 
+// MARK: - Base64Coder
+
 public final class Base64Coder: TypedCoder {
     public typealias Encoded = String
     public typealias Decoded = Data
-    
+
     public func encode(_ value: Decoded) throws -> Encoded {
         return value.base64EncodedString()
     }
@@ -24,6 +25,8 @@ public final class Base64Coder: TypedCoder {
     }
 }
 
+// MARK: - Base64CoderFailure
+
 public enum Base64CoderFailure: Error, Equatable {
     case invalidEncoding
 }
@@ -36,4 +39,3 @@ extension TypedCoder where Encoded == Data {
         self.decorate(Base64Coder())
     }
 }
-

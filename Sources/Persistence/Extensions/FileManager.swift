@@ -15,7 +15,7 @@ extension FileManager {
     public func contents(at url: URL) -> Data? {
         self.contents(atPath: url.path())
     }
-    
+
     /// Provides the Array with urls to all elements in this directory.
     ///
     /// - Parameter url: The url to the directory.

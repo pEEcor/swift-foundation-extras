@@ -59,12 +59,12 @@ extension Storage {
     public var content: [Key: Value] {
         get throws { try self.keys.reduce(into: [:]) { $0[$1] = try self.value(for: $1) } }
     }
-    
+
     /// Deletes all values.
     public func clear() throws {
         try self.keys.forEach { try self.remove(for: $0) }
     }
-    
+
     /// Replaces value behind the given key.
     ///
     /// If the value does not exist it will be created instead.
@@ -77,7 +77,7 @@ extension Storage {
     ) throws {
         // Delete the existing file.
         try self.remove(for: key)
-        
+
         // Insert new value using the same key.
         try self.insert(value: value, for: key)
     }
