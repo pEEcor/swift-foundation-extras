@@ -11,6 +11,8 @@ import Foundation
 public final class Base64Coder: TypedCoder {
     public typealias Encoded = String
     public typealias Decoded = Data
+    
+    public init() {}
 
     public func encode(_ value: Decoded) throws -> Encoded {
         return value.base64EncodedString()

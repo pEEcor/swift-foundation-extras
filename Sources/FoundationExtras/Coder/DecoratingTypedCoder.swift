@@ -6,9 +6,9 @@
 
 import Foundation
 
-// MARK: - MapTypedCoder
+// MARK: - DecoratingTypedCoder
 
-public final class MapTypedCoder<Encoded, Decoded: Codable, T: Codable>: TypedCoder {
+public final class DecoratingTypedCoder<Encoded, Decoded: Codable, T: Codable>: TypedCoder {
     let coder: AnyTypedCoder<T, Decoded>
     let decorator: AnyTypedCoder<Encoded, T>
 
@@ -30,6 +30,6 @@ extension TypedCoder where Encoded: Codable {
     public func decorate<T: Codable>(
         _ other: any TypedCoder<T, Encoded>
     ) -> AnyTypedCoder<T, Decoded> {
-        MapTypedCoder(coder: self, decorator: other).eraseToAnyConstrainedCoder()
+        DecoratingTypedCoder(coder: self, decorator: other).eraseToAnyConstrainedCoder()
     }
 }
