@@ -14,9 +14,9 @@ let package = Package(
         .library(name: "TestExtras", targets: ["TestExtras"]),
     ],
     dependencies: [
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay.git", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -25,7 +25,6 @@ let package = Package(
             name: "Persistence",
             dependencies: [
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
-                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
             ]
         ),
         .target(
