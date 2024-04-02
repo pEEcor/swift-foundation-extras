@@ -15,7 +15,7 @@ import Foundation
 /// This storage can be used when data should be cleared between cold launches of an appliction
 /// automatically. Use with caution when storing big values, since the entire content of the
 /// storage is kept in memory.
-public final class MemoryStorage<Value: Codable>: Sendable {
+public final class MemoryStorage<Key: Hashable, Value>: Sendable {
     /// The dictionary that holds all key-value pairs that get insertet into the storage.
     private let storage: LockIsolated<[Key: Value]>
 
@@ -38,7 +38,7 @@ extension MemoryStorage: Storage {
         self.storage.withValue { $0.removeAll() }
     }
 
-    public func insert(value: Value, for key: String) throws {
+    public func insert(value: Value, for key: Key) throws {
         self.storage.withValue { $0[key] = value }
     }
 

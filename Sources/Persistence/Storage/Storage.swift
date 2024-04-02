@@ -48,7 +48,7 @@ extension Storage {
     ///
     /// - Warning: Use with caution. Accessing this property will load the entire content of the
     /// storage into memory. This might not be desired.
-    var values: [Value] {
+    public var values: [Value] {
         get throws { try self.keys.map { try self.value(for: $0) } }
     }
 
@@ -56,12 +56,12 @@ extension Storage {
     ///
     /// - Warning: Use with caution. Accessing this property will load the entire content of the
     /// storage into memory. This might not be desired.
-    var content: [Key: Value] {
+    public var content: [Key: Value] {
         get throws { try self.keys.reduce(into: [:]) { $0[$1] = try self.value(for: $1) } }
     }
     
     /// Deletes all values.
-    func clear() throws {
+    public func clear() throws {
         try self.keys.forEach { try self.remove(for: $0) }
     }
     
@@ -82,25 +82,3 @@ extension Storage {
         try self.insert(value: value, for: key)
     }
 }
-
-//// MARK: - StorageEvent
-//
-// public enum StorageEvent<Value> {
-//    case created(Value)
-//    case updated(Value, Value)
-//    case deleted(Value)
-//    case undefined
-//
-//    init(prev: Value?, next: Value?) {
-//        switch (prev, next) {
-//        case let (prev?, next?):
-//            self = .updated(prev, next)
-//        case let (nil, next?):
-//            self = .created(next)
-//        case let (prev?, nil):
-//            self = .deleted(prev)
-//        case (nil, nil):
-//            self = .undefined
-//        }
-//    }
-// }
