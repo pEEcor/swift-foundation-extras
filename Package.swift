@@ -23,7 +23,7 @@ let package = Package(
             name: "FoundationExtras",
             dependencies: [
                 .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras")
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
             ]
         ),
         .target(

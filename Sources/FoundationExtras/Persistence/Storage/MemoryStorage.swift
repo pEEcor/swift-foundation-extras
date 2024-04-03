@@ -39,7 +39,7 @@ extension MemoryStorage: Storage {
             guard !storage.keys.contains(key) else {
                 throw MemoryStorageError.keyAlreadyExists
             }
-            
+
             storage[key] = value
         }
     }
@@ -53,17 +53,17 @@ extension MemoryStorage: Storage {
         guard let value = self.storage[key] else {
             throw MemoryStorageError.keyDoesNotExist
         }
-        
+
         return value
     }
 }
 
-// MARK: MemoryStorage.MemoryStorageError
+// MARK: - MemoryStorageError
 
 public enum MemoryStorageError: String, Error {
     /// Indicates that the storage contains no key-value pair for a specific key.
     case keyDoesNotExist
-    
+
     /// Indicates that the storage already contains a key-value pair with a specific key.
     case keyAlreadyExists
 }

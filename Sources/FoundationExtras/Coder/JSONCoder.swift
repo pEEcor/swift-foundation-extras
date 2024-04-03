@@ -16,7 +16,7 @@ public class JSONCoder: Coder {
 
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
-    
+
     /// Creates a JSONCoder.
     ///
     /// - Parameters:
@@ -44,4 +44,3 @@ extension AnyCoder {
         JSONCoder().eraseToAnyCoder()
     }
 }
-
