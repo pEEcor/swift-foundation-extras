@@ -5,6 +5,7 @@
 //
 
 import FoundationExtras
+import TestExtras
 import XCTest
 
 final class FileCacheTests: XCTestCase {

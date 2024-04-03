@@ -26,10 +26,24 @@ let package = Package(
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras")
             ]
         ),
+        .target(
+            name: "TestExtras",
+            dependencies: [
+                .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
+                .target(name: "FoundationExtras"),
+            ]
+        ),
         .testTarget(
             name: "FoundationExtrasTests",
             dependencies: [
                 .target(name: "FoundationExtras"),
+                .target(name: "TestExtras"),
+            ]
+        ),
+        .testTarget(
+            name: "TestExtrasTests",
+            dependencies: [
+                .target(name: "TestExtras"),
             ]
         ),
     ]
