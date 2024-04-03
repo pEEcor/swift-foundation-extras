@@ -1,5 +1,5 @@
 //
-//  MapTypedCoder.swift
+//  DecoratingTypedCoder.swift
 //
 //  Copyright © 2024 Paavo Becker.
 //

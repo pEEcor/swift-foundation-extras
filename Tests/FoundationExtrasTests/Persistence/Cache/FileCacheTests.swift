@@ -5,6 +5,7 @@
 //
 
 import FoundationExtras
+import TestExtras
 import XCTest
 
 final class FileCacheTests: XCTestCase {
@@ -286,11 +287,11 @@ final class FileCacheTests: XCTestCase {
         // THEN
         wait(for: [expectation], timeout: 0.5)
     }
-    
+
     func testConfigDefault_containDefaultConfig() {
         // GIVEN / WHEN
         let sut: FileCache<Int, Int>.Config = .default
-        
+
         // THEN
         XCTAssertEqual(sut.url, URL.cachesDirectory)
     }

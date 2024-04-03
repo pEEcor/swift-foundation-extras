@@ -31,18 +31,18 @@ final class MemoryStorageTests: XCTestCase {
         XCTAssertTrue(output.contains("foo"))
         XCTAssertTrue(output.contains("bar"))
     }
-    
+
     func testInsert_insertsValue_whenKeyDoesNotExist() throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
         try storage.insert(value: 43, for: "bar")
-        
+
         // THEN
         XCTAssertEqual(try storage.value(for: "bar"), 43)
     }
-    
+
     func testInsert_throwError_whenKeyAlreadyExists() throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
@@ -53,29 +53,29 @@ final class MemoryStorageTests: XCTestCase {
             XCTAssertEqual(error as! MemoryStorageError, .keyAlreadyExists)
         }
     }
-    
+
     func testRemove_removeKeyValuePairFromStorage_whenKeyExists() throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
         try storage.remove(for: "foo")
-        
+
         // THEN
         XCTAssertEqual(try storage.content, [:])
     }
-    
+
     func testValue_returnValueForKey_whenKeyExists() throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
         let output = try storage.value(for: "foo")
-        
+
         // THEN
         XCTAssertEqual(output, 42)
     }
-    
+
     func testValue_throwError_whenKeyDoesNotExist() throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])

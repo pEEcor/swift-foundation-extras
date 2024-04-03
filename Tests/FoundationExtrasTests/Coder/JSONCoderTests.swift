@@ -1,13 +1,14 @@
 //
 //  JSONCoderTests.swift
-//  
 //
-//  Created by Paavo Becker on 02.04.24.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import FoundationExtras
 import XCTest
 import XCTestDynamicOverlay
+
+// MARK: - JSONCoderTests
 
 final class JSONCoderTests: XCTestCase {
     func testInit_setEncoderAndDecoder() throws {
@@ -17,38 +18,42 @@ final class JSONCoderTests: XCTestCase {
         // GIVEN
         let encoder = MockJSONEncoder()
         let decoder = MockJSONDecoder()
-        
+
         // WHEN
         let coder = JSONCoder(encoder: encoder, decoder: decoder)
-        
+
         encoder.onEncode = { expectation_encode.fulfill() }
         decoder.onDecode = { expectation_decode.fulfill() }
-        
+
         let data = try coder.encode(1)
         _ = try coder.decode(Int.self, from: data)
 
         // THEN
         wait(for: [expectation_encode, expectation_decode], timeout: 0.5)
     }
-    
+
     func testJSON_createJSONCoderFromInferredType() throws {
         let _: AnyCoder<Data> = .json
     }
 }
 
+// MARK: - MockJSONEncoder
+
 private class MockJSONEncoder: JSONEncoder {
     var onEncode: () throws -> Void = unimplemented("MockJSONEncoder.onEncode")
-    
-    override func encode<T>(_ value: T) throws -> Data where T : Encodable {
+
+    override func encode<T>(_ value: T) throws -> Data where T: Encodable {
         try self.onEncode()
         return try super.encode(value)
     }
 }
 
+// MARK: - MockJSONDecoder
+
 private class MockJSONDecoder: JSONDecoder {
     var onDecode: () throws -> Void = unimplemented("MockJSONEncoder.onDecode")
-    
-    override func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+
+    override func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
         try self.onDecode()
         return try super.decode(type, from: data)
     }

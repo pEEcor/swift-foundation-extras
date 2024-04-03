@@ -6,6 +6,7 @@
 
 import Foundation
 import FoundationExtras
+import TestExtras
 import XCTest
 
 final class FileStorageTests: XCTestCase {
