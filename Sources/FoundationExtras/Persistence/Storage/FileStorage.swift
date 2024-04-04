@@ -112,8 +112,8 @@ extension FileStorage: Storage {
         try self.config.keyCoder.encode(key)
     }
 
-    private func decodeKey(_ base64EncodedString: String) throws -> Key {
-        try self.config.keyCoder.decode(from: base64EncodedString)
+    private func decodeKey(_ value: String) throws -> Key {
+        try self.config.keyCoder.decode(from: value)
     }
 
     private func makeUrl(for key: Key) throws -> URL {
