@@ -13,8 +13,8 @@ public final class DecoratingTypedCoder<Encoded, Decoded: Codable, T: Codable>: 
     let decorator: AnyTypedCoder<Encoded, T>
 
     public init(coder: any TypedCoder<T, Decoded>, decorator: any TypedCoder<Encoded, T>) {
-        self.coder = coder.eraseToAnyConstrainedCoder()
-        self.decorator = decorator.eraseToAnyConstrainedCoder()
+        self.coder = coder.eraseToAnyTypedCoder()
+        self.decorator = decorator.eraseToAnyTypedCoder()
     }
 
     public func encode(_ value: Decoded) throws -> Encoded {
@@ -30,6 +30,6 @@ extension TypedCoder where Encoded: Codable {
     public func decorate<T: Codable>(
         _ other: any TypedCoder<T, Encoded>
     ) -> AnyTypedCoder<T, Decoded> {
-        DecoratingTypedCoder(coder: self, decorator: other).eraseToAnyConstrainedCoder()
+        DecoratingTypedCoder(coder: self, decorator: other).eraseToAnyTypedCoder()
     }
 }
