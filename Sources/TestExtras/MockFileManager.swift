@@ -81,6 +81,10 @@ public final class MockFileManager: FileManager {
     ) -> Bool {
         self.onFileExists(URL(fileURLWithPath: path))
     }
+    
+    override public func fileExists(atPath path: String) -> Bool {
+        self.onFileExists(URL(fileURLWithPath: path))
+    }
 
     override public func removeItem(at url: URL) throws {
         try self.onRemoveItem(url)
