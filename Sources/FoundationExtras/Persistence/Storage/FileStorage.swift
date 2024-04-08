@@ -178,7 +178,7 @@ extension FileStorage {
 
         /// A default configuration with sensible defaults.
         public static var `default`: Self {
-            Self()
+            Config()
         }
     }
 }
