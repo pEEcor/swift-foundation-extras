@@ -37,7 +37,7 @@ platforms. It extends various existing types and also introduces new tools for:
 Add the following to you `Package.swift` description.
 
 ```Swift
-.package(url: "git@github.com:pEEcor/swift-foundation-extras.git", from: "0.1.1")
+.package(url: "git@github.com:pEEcor/swift-foundation-extras.git", from: "0.1.2")
 ```
 
 The exposed library is named `FoundationExtras`.
