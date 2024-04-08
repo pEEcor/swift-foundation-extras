@@ -83,7 +83,7 @@ public class AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
 
 extension TypedCoder {
     /// Erases a concrete typed coder into a type-erased typed coder.
-    public func eraseToAnyConstrainedCoder() -> AnyTypedCoder<Encoded, Decoded> {
+    public func eraseToAnyTypedCoder() -> AnyTypedCoder<Encoded, Decoded> {
         AnyTypedCoder(coder: self)
     }
 }

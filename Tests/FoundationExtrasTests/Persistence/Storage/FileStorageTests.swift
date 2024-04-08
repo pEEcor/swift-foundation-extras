@@ -101,6 +101,24 @@ final class FileStorageTests: XCTestCase {
             XCTAssertEqual(error as! FileStorageFailure, .writeFailure)
         }
     }
+ 
+    func testInsert_createStorageDirectory_whenNotPresent() throws {
+        let expectation = expectation(description: "create-directory")
+        
+        // GIVEN
+        let fileManager = MockFileManager()
+        let config = FileStorage<Int, Int>.Config(fileManager: fileManager)
+        let storage = FileStorage(config: config)
+
+        // WHEN
+        fileManager.onFileExists = { _ in false }
+        fileManager.onCreateFile = { _,_ in true }
+        fileManager.onCreateDirectory = { _ in expectation.fulfill() }
+        try storage.insert(value: 1, for: 42)
+        
+        // THEN
+        wait(for: [expectation], timeout: 0.5)
+    }
 
     func testRemove_doNothing_whenKeyDoesNotExist() throws {
         let expectation = expectation(description: "remove-file")
@@ -184,5 +202,15 @@ final class FileStorageTests: XCTestCase {
 
     private func makeKeyComponent(key: String) -> String {
         key.data(using: .utf8)!.base64EncodedString()
+    }
+}
+
+final class FileStorageConfigTests: XCTestCase {
+    func testDefault_createDefaultConfiguration() {
+        // GIVEN / WHEN
+        let sut = FileStorage<Int, Int>.Config.default
+        
+        // THEN
+        XCTAssertEqual(sut.url, URL.documentsDirectory)
     }
 }

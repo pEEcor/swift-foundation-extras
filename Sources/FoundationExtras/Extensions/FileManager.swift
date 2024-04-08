@@ -65,6 +65,6 @@ extension FileManager {
     /// - Parameter url: the url to check.
     /// - Returns: True if a file exists a the url.
     public func fileExists(at url: URL) -> Bool {
-        self.directoryExists(atPath: url.path())
+        self.fileExists(atPath: url.path())
     }
 }
