@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Coder
 
-/// A protocol that defines how values can be encoded and decoded from and into the same type.
+/// A protocol that defines how values can be encoded and decoded from and into a specific type.
 ///
 /// The generic argument of the protocol declares the type that a coder's encode operation will
 /// produce when encoding a value. Thus this is also the type that is fed into the decode operation.
