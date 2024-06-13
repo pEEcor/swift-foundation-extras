@@ -14,15 +14,15 @@ import Foundation
 /// This storage can be used when data should be cleared between cold launches of an appliction
 /// automatically. Use with caution when storing big values, since the entire content of the
 /// storage is kept in memory.
-public final class MemoryStorage<Key: Hashable, Value>: Sendable {
-    /// The dictionary that holds all key-value pairs that get insertet into the storage.
-    private let storage: LockIsolated<[Key: Value]>
+public final actor MemoryStorage<Key: Hashable & Sendable, Value: Sendable> {
+    /// The dictionary that holds all key-value pairs that get inserted into the storage.
+    private var storage: [Key: Value]
 
     /// Creates a MemoryStorage.
     ///
     /// - Parameter initialValue: Initial values, that are available in the storage after init.
     public init(initialValue: [Key: Value] = [:]) {
-        self.storage = LockIsolated(initialValue)
+        self.storage = initialValue
     }
 }
 
@@ -34,18 +34,16 @@ extension MemoryStorage: Storage {
     }
 
     public func insert(value: Value, for key: Key) throws {
-        try self.storage.withValue { storage in
-            // Make sure that the key does not exist yet inside the storage.
-            guard !storage.keys.contains(key) else {
-                throw MemoryStorageError.keyAlreadyExists
-            }
-
-            storage[key] = value
+        // Make sure that the key does not exist yet inside the storage.
+        guard !self.storage.keys.contains(key) else {
+            throw MemoryStorageError.keyAlreadyExists
         }
+        
+        self.storage[key] = value
     }
 
     public func remove(for key: Key) throws {
-        self.storage.withValue { $0[key] = nil }
+        self.storage[key] = nil
     }
 
     public func value(for key: Key) throws -> Value {

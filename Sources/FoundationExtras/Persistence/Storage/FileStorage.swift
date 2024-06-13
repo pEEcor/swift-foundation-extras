@@ -14,7 +14,7 @@ import Foundation
 ///
 /// > Tip: If storage of multiple types is required, transform your values to a uniform type before
 /// storing them, i.e. `Data`.
-public class FileStorage<Key: Codable & Hashable, Value: Codable> {
+public final class FileStorage<Key: Codable & Hashable & Sendable, Value: Codable & Sendable> {
     /// The configuration of the file storage.
     public let config: Config
 

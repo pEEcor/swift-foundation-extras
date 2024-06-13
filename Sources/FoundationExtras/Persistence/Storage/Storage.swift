@@ -6,6 +6,11 @@
 
 import Foundation
 
+///// An actor that isolates
+//@globalActor public actor StorageActor {
+//    public static var shared = StorageActor()
+//}
+
 // MARK: - Storage
 
 /// A Protocol that defines persistence capabilities.
@@ -14,13 +19,13 @@ import Foundation
 /// store non-homogenous values, use a type erasing wrapper as the storages type. The type erasing
 /// wrapper is then repsponsible to implement the codable conformance for its wrapped values.
 public protocol Storage<Key, Value> {
-    associatedtype Key: Hashable
-    associatedtype Value
+    associatedtype Key: Hashable & Sendable
+    associatedtype Value: Sendable
 
     /// Contains all keys in storage.
     ///
     /// - returns: All keys in storage.
-    var keys: [Key] { get }
+    var keys: [Key] { get async }
 
     /// Saves value a value identified by the given key.
     ///
@@ -29,27 +34,27 @@ public protocol Storage<Key, Value> {
     ///
     /// - Parameter value: Value that should be stored.
     /// - Parameter key: Key to store the value under.
-    func insert(value: Value, for: Key) throws
+    func insert(value: Value, for: Key) async throws
 
     /// Deletes value from storage.
     ///
     /// - Parameter name: Name of value.
-    func remove(for: Key) throws
+    func remove(for: Key) async throws
 
     /// Provides specific value from storage.
     ///
     /// - Parameter name: Name of value to retrieve.
     /// - returns: Value
-    func value(for: Key) throws -> Value
+    func value(for: Key) async throws -> Value
 }
 
-extension Storage {
+extension Storage where Self: Sendable {
     /// Contains all values that are managed by this storage instance.
     ///
     /// - Warning: Use with caution. Accessing this property will load the entire content of the
     /// storage into memory. This might not be desired.
     public var values: [Value] {
-        get throws { try self.keys.map { try self.value(for: $0) } }
+        get async throws { try await self.keys.asyncMap { try await self.value(for: $0) } }
     }
 
     /// Contains the entire content that are managed by this storage instance.
@@ -57,12 +62,14 @@ extension Storage {
     /// - Warning: Use with caution. Accessing this property will load the entire content of the
     /// storage into memory. This might not be desired.
     public var content: [Key: Value] {
-        get throws { try self.keys.reduce(into: [:]) { $0[$1] = try self.value(for: $1) } }
+        get async throws {
+            try await self.keys.asyncReduce(into: [:]) { $0[$1] = try await self.value(for: $1) }
+        }
     }
 
     /// Deletes all values.
-    public func clear() throws {
-        try self.keys.forEach { try self.remove(for: $0) }
+    public func clear() async throws {
+        try await self.keys.asyncForEach { try await self.remove(for: $0) }
     }
 
     /// Replaces value behind the given key.
@@ -74,11 +81,11 @@ extension Storage {
     public func update(
         value: Value,
         for key: Key
-    ) throws {
+    ) async throws {
         // Delete the existing file.
-        try self.remove(for: key)
+        try await self.remove(for: key)
 
         // Insert new value using the same key.
-        try self.insert(value: value, for: key)
+        try await self.insert(value: value, for: key)
     }
 }

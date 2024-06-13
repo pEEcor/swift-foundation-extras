@@ -7,8 +7,23 @@
 import FoundationExtras
 import XCTest
 
+public func XCTAssertThrowsError<T>(
+    _ expression: @autoclosure () async throws -> T,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    _ errorHandler: (_ error: any Error) -> Void = { _ in }
+) async {
+    do {
+        _ = try await expression()
+        XCTFail(message())
+    } catch {
+        errorHandler(error)
+    }
+}
+
 final class MemoryStorageTests: XCTestCase {
-    func testInit_insertInitialValues_whenProvided() throws {
+    func testInit_insertInitialValues_whenProvided() async throws {
         // GIVEN
         let values = ["foo": 42, "bar": 43]
 
@@ -16,72 +31,76 @@ final class MemoryStorageTests: XCTestCase {
         let storage = MemoryStorage(initialValue: values)
 
         // THEN
-        XCTAssertEqual(try storage.value(for: "foo"), 42)
-        XCTAssertEqual(try storage.value(for: "bar"), 43)
+        let output1 = try await storage.value(for: "foo")
+        let output2 = try await storage.value(for: "bar")
+        XCTAssertEqual(output1, 42)
+        XCTAssertEqual(output2, 43)
     }
 
-    func testKey_containAllKeys() throws {
+    func testKey_containAllKeys() async throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42, "bar": 43])
 
         // WHEN
-        let output = storage.keys
+        let output = await storage.keys
 
         // THEN
         XCTAssertTrue(output.contains("foo"))
         XCTAssertTrue(output.contains("bar"))
     }
 
-    func testInsert_insertsValue_whenKeyDoesNotExist() throws {
+    func testInsert_insertsValue_whenKeyDoesNotExist() async throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
-        try storage.insert(value: 43, for: "bar")
+        try await storage.insert(value: 43, for: "bar")
 
         // THEN
-        XCTAssertEqual(try storage.value(for: "bar"), 43)
+        let output = try await storage.value(for: "bar")
+        XCTAssertEqual(output, 43)
     }
 
-    func testInsert_throwError_whenKeyAlreadyExists() throws {
+    func testInsert_throwError_whenKeyAlreadyExists() async throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
-        XCTAssertThrowsError(try storage.insert(value: 43, for: "foo")) { error in
+        await XCTAssertThrowsError(try await storage.insert(value: 43, for: "foo")) { error in
             // THEN
             XCTAssertEqual(error as! MemoryStorageError, .keyAlreadyExists)
         }
     }
 
-    func testRemove_removeKeyValuePairFromStorage_whenKeyExists() throws {
+    func testRemove_removeKeyValuePairFromStorage_whenKeyExists() async throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
-        try storage.remove(for: "foo")
+        try await storage.remove(for: "foo")
 
         // THEN
-        XCTAssertEqual(try storage.content, [:])
+        let output = try await storage.content
+        XCTAssertEqual(output, [:])
     }
 
-    func testValue_returnValueForKey_whenKeyExists() throws {
+    func testValue_returnValueForKey_whenKeyExists() async throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
-        let output = try storage.value(for: "foo")
+        let output = try await storage.value(for: "foo")
 
         // THEN
         XCTAssertEqual(output, 42)
     }
 
-    func testValue_throwError_whenKeyDoesNotExist() throws {
+    func testValue_throwError_whenKeyDoesNotExist() async throws {
         // GIVEN
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
-        XCTAssertThrowsError(try storage.value(for: "bar")) { error in
+        await XCTAssertThrowsError(try await storage.value(for: "bar")) { error in
             // THEN
             XCTAssertEqual(error as! MemoryStorageError, .keyDoesNotExist)
         }
