@@ -22,6 +22,8 @@ public func XCTAssertThrowsError<T>(
     }
 }
 
+// MARK: - MemoryStorageTests
+
 final class MemoryStorageTests: XCTestCase {
     func testInit_insertInitialValues_whenProvided() async throws {
         // GIVEN
@@ -66,7 +68,7 @@ final class MemoryStorageTests: XCTestCase {
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
-        await XCTAssertThrowsError(try await storage.insert(value: 43, for: "foo")) { error in
+        await XCTAssertThrowsError({ try await storage.insert(value: 43, for: "foo") }) { error in
             // THEN
             XCTAssertEqual(error as! MemoryStorageError, .keyAlreadyExists)
         }
@@ -100,7 +102,7 @@ final class MemoryStorageTests: XCTestCase {
         let storage = MemoryStorage(initialValue: ["foo": 42])
 
         // WHEN
-        await XCTAssertThrowsError(try await storage.value(for: "bar")) { error in
+        await XCTAssertThrowsError({ try await storage.value(for: "bar") }) { error in
             // THEN
             XCTAssertEqual(error as! MemoryStorageError, .keyDoesNotExist)
         }

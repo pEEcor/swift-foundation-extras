@@ -1,15 +1,10 @@
 //
 //  Storage.swift
 //
-//  Copyright © 2022 Paavo Becker.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import Foundation
-
-///// An actor that isolates
-//@globalActor public actor StorageActor {
-//    public static var shared = StorageActor()
-//}
 
 // MARK: - Storage
 

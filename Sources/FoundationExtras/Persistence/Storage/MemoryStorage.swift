@@ -38,7 +38,7 @@ extension MemoryStorage: Storage {
         guard !self.storage.keys.contains(key) else {
             throw MemoryStorageError.keyAlreadyExists
         }
-        
+
         self.storage[key] = value
     }
 

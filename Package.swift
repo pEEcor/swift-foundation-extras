@@ -26,11 +26,11 @@ let package = Package(
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
             ],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency")
+                .enableExperimentalFeature("StrictConcurrency"),
             ]
         ),
         .target(
-            name: "TestExtras",
+            name: "MockExtras",
             dependencies: [
                 .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
                 .target(name: "FoundationExtras"),
@@ -40,13 +40,13 @@ let package = Package(
             name: "FoundationExtrasTests",
             dependencies: [
                 .target(name: "FoundationExtras"),
-                .target(name: "TestExtras"),
+                .target(name: "MockExtras"),
             ]
         ),
         .testTarget(
-            name: "TestExtrasTests",
+            name: "MockExtrasTests",
             dependencies: [
-                .target(name: "TestExtras"),
+                .target(name: "MockExtras"),
             ]
         ),
     ]

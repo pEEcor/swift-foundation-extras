@@ -1,8 +1,7 @@
 //
-//  File.swift
-//  
+//  Collection.swift
 //
-//  Created by Paavo Becker on 13.06.24.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import Foundation
@@ -41,7 +40,7 @@ extension Collection {
             return initialResult
         }
     }
-    
+
     /// Similar to syncronous `reduce(into:_)` but this version enables the usage of an async
     /// closure to make a partial result.
     ///
@@ -56,19 +55,19 @@ extension Collection {
     @inlinable
     public func asyncReduce<Result>(
         into initialResult: Result,
-        _ updateAccumulatingResult: (inout Result, Element) async throws -> ()
+        _ updateAccumulatingResult: (inout Result, Element) async throws -> Void
     ) async rethrows -> Result {
         // Make mutable copy of result
         var result = initialResult
-        
+
         // Run reduce
         if let first = self.first {
             // Accumulate first value.
             try await updateAccumulatingResult(&result, first)
-            
+
             // Make the remaining list by removing the first element.
             let rest = self.dropFirst()
-            
+
             // Call asyncReduce recursively to reduce the rest.
             return try await rest.asyncReduce(into: result, updateAccumulatingResult)
         } else {

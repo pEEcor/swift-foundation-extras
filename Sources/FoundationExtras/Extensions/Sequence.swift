@@ -1,7 +1,7 @@
 //
 //  Sequence.swift
 //
-//  Copyright © 2023 Paavo Becker.
+//  Copyright © 2024 Paavo Becker.
 //
 
 import Foundation
@@ -23,7 +23,7 @@ extension Sequence {
         }
         return values
     }
-    
+
     /// Maps an async closure over a sequence. The transformations are performed sequentially
     ///
     /// - Parameter transform: Async transformation
@@ -41,7 +41,7 @@ extension Sequence {
         }
         return values
     }
-    
+
     /// Applies an async closure to each element of the sequence.
     ///
     /// - Parameter operation: Async operation
@@ -53,7 +53,7 @@ extension Sequence {
             try await operation(element)
         }
     }
-    
+
     /// Filters the sequence using an async predicate.
     ///
     /// - Parameter isIncluded: Asynchrones Prädikat
