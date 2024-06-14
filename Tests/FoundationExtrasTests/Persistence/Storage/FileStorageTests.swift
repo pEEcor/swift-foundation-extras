@@ -6,7 +6,7 @@
 
 import Foundation
 import FoundationExtras
-import TestExtras
+import MockExtras
 import XCTest
 
 // MARK: - FileStorageTests
