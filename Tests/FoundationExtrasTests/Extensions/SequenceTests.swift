@@ -112,4 +112,16 @@ final class SequenceTests: XCTestCase {
         XCTAssertTrue(output.value.contains(5))
         XCTAssertEqual(output.value.count, 3)
     }
+    
+    func testConcurrentFilter() async throws {
+        // GIVEN
+        let input = ["one", "two", "three"]
+        let transform: @Sendable (String) async -> Bool = { $0.count < 5 }
+
+        // WHEN
+        let output = try await input.concurrentFilter(transform)
+
+        // THEN
+        XCTAssertEqual(output, ["one", "two"])
+    }
 }

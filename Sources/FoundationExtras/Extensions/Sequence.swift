@@ -11,8 +11,8 @@ import Foundation
 extension Sequence {
     /// Maps an async closure over a sequence. The transformations are performed sequentially.
     ///
-    /// - Parameter transform: Async transformation
-    /// - Returns: Transformed sequence
+    /// - Parameter transform: Async transformation.
+    /// - Returns: Transformed sequence.
     @inlinable
     public func asyncMap<T>(
         _ transform: @escaping (Element) async throws -> T
@@ -26,8 +26,8 @@ extension Sequence {
 
     /// Maps an async closure over a sequence. The transformations are performed sequentially.
     ///
-    /// - Parameter transform: Async transformation
-    /// - Returns: Transformed sequence
+    /// - Parameter transform: Async transformation.
+    /// - Returns: Transformed sequence.
     @inlinable
     public func asyncCompactMap<T>(
         _ transform: @escaping (Element) async throws -> T?
@@ -44,7 +44,7 @@ extension Sequence {
 
     /// Applies an async closure to each element of the sequence.
     ///
-    /// - Parameter operation: Async operation
+    /// - Parameter operation: Async operation.
     @inlinable
     public func asyncForEach(
         _ operation: @escaping (Element) async throws -> Void
@@ -56,8 +56,8 @@ extension Sequence {
 
     /// Filters the sequence using an async predicate.
     ///
-    /// - Parameter isIncluded: Asynchrones Prädikat
-    /// - Returns: Gefilterte Sequenz in der alle Elemente das Prädikat erfüllen
+    /// - Parameter isIncluded: Asynchronuous predicate.
+    /// - Returns: Sequence with all elements that satisfy the predicate.
     @inlinable
     public func asyncFilter(
         _ isIncluded: @escaping (Element) async throws -> Bool
@@ -73,8 +73,13 @@ extension Sequence where Element: Sendable {
     ///
     /// The order of elements is preserved.
     ///
-    /// - Parameter transform: Async transformation
-    /// - Returns: Transformed sequence
+    /// The preservation of order is achieved by running the tasks concurrently but by awaiting
+    /// their outputs in order. This may come with a slight performance penalty. If the order
+    /// of transformed elements does not matter, ``unorderedConcurrentMap(_:)`` may present a faster
+    /// alternative.
+    ///
+    /// - Parameter transform: Async transformation.
+    /// - Returns: Transformed sequence.
     @inlinable
     public func concurrentMap<T: Sendable>(
         _ transform: @escaping @Sendable (Element) async throws -> T
@@ -96,8 +101,8 @@ extension Sequence where Element: Sendable {
     ///
     /// The order of elements is NOT preserved.
     ///
-    /// - Parameter transform: Async transformation
-    /// - Returns: Transformed sequence
+    /// - Parameter transform: Async transformation.
+    /// - Returns: Transformed sequence.
     @inlinable
     public func unorderedConcurrentMap<T: Sendable>(
         _ transform: @escaping @Sendable (Element) async throws -> T
@@ -123,8 +128,8 @@ extension Sequence where Element: Sendable {
     ///
     /// The order of elements is preserved
     ///
-    /// - Parameter transform: Async transformation
-    /// - Returns: Transformed sequence
+    /// - Parameter transform: Async transformation.
+    /// - Returns: Transformed sequence.
     @inlinable
     public func concurrentCompactMap<T: Sendable>(
         _ transform: @escaping @Sendable (Element) async throws -> T?
@@ -142,7 +147,7 @@ extension Sequence where Element: Sendable {
     /// Applies an async closure to each element of the sequence, performing all operations
     /// concurrently.
     ///
-    /// - Parameter transform: Async transformation
+    /// - Parameter transform: Async transformation.
     @inlinable
     public func concurrentForEach(
         _ operation: @escaping @Sendable (Element) async throws -> Void
@@ -154,6 +159,21 @@ extension Sequence where Element: Sendable {
         }
         .asyncForEach { task in
             try await task.value
+        }
+    }
+    
+    /// Filters the sequence using an async predicate. Runs all filters concurrently.
+    ///
+    /// The order of elements is preserved.
+    ///
+    /// - Parameter isIncluded: Asynchronuous predicate.
+    /// - Returns: Sequence with all elements that satisfy the predicate.
+    @inlinable
+    public func concurrentFilter(
+        _ isIncluded: @escaping @Sendable (Element) async throws -> Bool
+    ) async throws -> [Element] {
+        try await self.concurrentCompactMap { element in
+            try await isIncluded(element) ? element : nil
         }
     }
 }
