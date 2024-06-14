@@ -9,7 +9,7 @@ import Foundation
 // MARK: - async and concurrent mapping
 
 extension Sequence {
-    /// Maps an async closure over a sequence. The transformations are performed sequentially
+    /// Maps an async closure over a sequence. The transformations are performed sequentially.
     ///
     /// - Parameter transform: Async transformation
     /// - Returns: Transformed sequence
@@ -24,7 +24,7 @@ extension Sequence {
         return values
     }
 
-    /// Maps an async closure over a sequence. The transformations are performed sequentially
+    /// Maps an async closure over a sequence. The transformations are performed sequentially.
     ///
     /// - Parameter transform: Async transformation
     /// - Returns: Transformed sequence
