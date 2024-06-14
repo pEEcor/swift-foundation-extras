@@ -119,7 +119,7 @@ extension Sequence where Element: Sendable {
         }
     }
 
-    /// Maps an async closure over a sequence, performing all operations concurrently
+    /// Maps an async closure over a sequence, performing all operations concurrently.
     ///
     /// The order of elements is preserved
     ///
@@ -140,7 +140,7 @@ extension Sequence where Element: Sendable {
     }
 
     /// Applies an async closure to each element of the sequence, performing all operations
-    /// concurrently
+    /// concurrently.
     ///
     /// - Parameter transform: Async transformation
     @inlinable
