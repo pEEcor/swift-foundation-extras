@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ConcurrencyExtras
 
 // MARK: - NSCache + Sendable
 
@@ -19,10 +20,10 @@ extension NSCache: @unchecked Sendable {}
 /// The cache stores values of a specific type. If different types need to be stored in the Cache,
 /// consider using the `Data` type as the cache's storage type.
 ///
-/// The ``FileCache`` does not give any guarantee about the duration of element storage inside the
-/// cache. According to the availability of system resources, elements may be evicted from the cache
-/// at any time.
-public final class MemoryCache<Key: Hashable, Value> {
+/// - Important: The ``MemoryCache`` does not give any guarantee about the duration of element
+/// storage inside the cache. According to the availability of system resources, elements may be
+/// evicted from the cache at any time.
+public final class MemoryCache<Key: Hashable & Sendable, Value: Sendable>: Sendable {
     private let cache: NSCache<WrappedKey, Entry>
     private let keyTracker: KeyTracker
 
@@ -107,12 +108,10 @@ extension MemoryCache {
         }
     }
 
-    final class KeyTracker: NSObject, NSCacheDelegate {
-        private var keys = Set<Key>()
+    final class KeyTracker: NSObject, NSCacheDelegate, Sendable {
+        private let keys: LockIsolated<Set<Key>> = LockIsolated([])
 
-        var all: Set<Key> {
-            self.keys
-        }
+        var all: Set<Key> { self.keys.value }
 
         func cache(
             _ cache: NSCache<AnyObject, AnyObject>,
@@ -121,12 +120,14 @@ extension MemoryCache {
             guard let entry = object as? Entry else {
                 return
             }
+            
+            let key = entry.key
 
-            self.keys.remove(entry.key)
+            self.keys.withValue { _ = $0.remove(key) }
         }
 
         func insert(key: Key) {
-            self.keys.insert(key)
+            self.keys.withValue { _ = $0.insert(key) }
         }
     }
 }
