@@ -31,13 +31,15 @@ platforms. It extends various existing types and also introduces new tools for:
 - Caching
 - Persistence
 - Coding
+- Mapping
 
 ## Installation via SPM
 
-Add the following to you `Package.swift` description.
+Add the following to you `Package.swift` description. Replace `version` with the tag of the
+desired version listed in [Releases](https://github.com/pEEcor/swift-foundation-extras/releases).
 
 ```Swift
-.package(url: "git@github.com:pEEcor/swift-foundation-extras.git", from: "0.1.2")
+.package(url: "git@github.com:pEEcor/swift-foundation-extras.git", from: "version")
 ```
 
 The exposed library is named `FoundationExtras`.
