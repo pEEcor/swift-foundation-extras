@@ -4,8 +4,8 @@
 //  Copyright © 2024 Paavo Becker.
 //
 
-import XCTest
 import ConcurrencyExtras
+import XCTest
 
 final class SequenceTests: XCTestCase {
     func testAsyncMap() async {

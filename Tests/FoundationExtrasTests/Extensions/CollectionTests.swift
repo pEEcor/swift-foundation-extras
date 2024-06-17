@@ -5,6 +5,7 @@
 //  Created by Paavo Becker on 14.06.24.
 //
 
+import FoundationExtras
 import XCTest
 
 final class CollectionTests: XCTestCase {
