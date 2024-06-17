@@ -21,7 +21,7 @@ public protocol Coder<Output>: TopLevelEncoder, TopLevelDecoder
 
 // MARK: - AnyCoder
 
-/// Type-erased wrapper for Coders.
+/// Type-erasing wrapper for Coders.
 public class AnyCoder<Output>: Coder {
     /// The embedded coder that handles the actual coding.
     private let coder: any Coder<Output>
