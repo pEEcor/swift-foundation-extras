@@ -161,7 +161,7 @@ extension Sequence where Element: Sendable {
             try await task.value
         }
     }
-    
+
     /// Filters the sequence using an async predicate. Runs all filters concurrently.
     ///
     /// The order of elements is preserved.

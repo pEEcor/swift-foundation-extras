@@ -13,7 +13,7 @@
 public struct From<S, T>: Sendable {
     /// Converts `T` into `S`.
     public let convert: @Sendable (T) -> S
-    
+
     public init(convert: @escaping @Sendable (T) -> S) {
         self.convert = convert
     }

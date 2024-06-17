@@ -13,7 +13,7 @@
 public struct TryFrom<S, T>: Sendable {
     /// Converts `T` into `S`.
     public let convert: @Sendable (T) throws -> S
-    
+
     public init(convert: @escaping @Sendable (T) throws -> S) {
         self.convert = convert
     }

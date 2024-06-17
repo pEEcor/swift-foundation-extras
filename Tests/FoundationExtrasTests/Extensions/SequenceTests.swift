@@ -44,7 +44,7 @@ final class SequenceTests: XCTestCase {
         // THEN
         XCTAssertEqual(output, [3, 3, 5])
     }
-    
+
     func testAsyncFilter() async {
         // GIVEN
         let input = ["one", "two", "three"]
@@ -56,7 +56,7 @@ final class SequenceTests: XCTestCase {
         // THEN
         XCTAssertEqual(output, ["one", "two"])
     }
-    
+
     func testConcurrentMap() async throws {
         // GIVEN
         let input = ["one", "two", "three", "four"]
@@ -68,7 +68,7 @@ final class SequenceTests: XCTestCase {
         // THEN
         XCTAssertEqual(output, [3, 3, 5, 4])
     }
-    
+
     func testUnorderedConcurrentMap() async throws {
         // GIVEN
         let input = ["one", "two", "three", "four"]
@@ -83,7 +83,7 @@ final class SequenceTests: XCTestCase {
         XCTAssertTrue(output.contains(5))
         XCTAssertEqual(output.count, 4)
     }
-    
+
     func testConcurrentCompactMap() async throws {
         // GIVEN
         let input = ["one", nil, "three"]
@@ -95,7 +95,7 @@ final class SequenceTests: XCTestCase {
         // THEN
         XCTAssertEqual(output, [3, 5])
     }
-    
+
     func testConcurrentForEach() async throws {
         // GIVEN
         let input = ["one", "two", "three"]
@@ -112,7 +112,7 @@ final class SequenceTests: XCTestCase {
         XCTAssertTrue(output.value.contains(5))
         XCTAssertEqual(output.value.count, 3)
     }
-    
+
     func testConcurrentFilter() async throws {
         // GIVEN
         let input = ["one", "two", "three"]
