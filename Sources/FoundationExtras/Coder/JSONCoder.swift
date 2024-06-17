@@ -11,7 +11,7 @@ import XCTestDynamicOverlay
 // MARK: - JSONCoder
 
 /// A coder that can encode into and decode from JSON `Data`.
-public class JSONCoder: Coder {
+public struct JSONCoder: Coder {
     public typealias Output = Data
 
     private let encoder: JSONEncoder
