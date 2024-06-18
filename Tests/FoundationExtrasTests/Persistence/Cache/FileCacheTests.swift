@@ -4,9 +4,9 @@
 //  Copyright © 2024 Paavo Becker.
 //
 
-import FoundationExtras
-import TestExtras
+import MockExtras
 import XCTest
+@testable import FoundationExtras
 
 final class FileCacheTests: XCTestCase {
     func testInit_shouldCreateCacheDirectory_whenNotPresent() throws {
@@ -62,9 +62,9 @@ final class FileCacheTests: XCTestCase {
 
         fileManager.onFileExists = { _ in true }
         fileManager.onCreateFile = { _, data in
-            let (key, value) = try! config.decode(data!)
-            XCTAssertEqual(key, 1)
-            XCTAssertEqual(value, 42)
+            let entry = try! config.coder.decode(FileCache<Int, Int>.Entry.self, from: data!)
+            XCTAssertEqual(entry.key, 1)
+            XCTAssertEqual(entry.value, 42)
             expectation.fulfill()
             return true
         }
@@ -108,7 +108,7 @@ final class FileCacheTests: XCTestCase {
         // Define the results that are returned or thrown when the content for a specific path
         // gets requested from the filemanager.
         let results: [Int: Result<Data, Failure>] = [
-            1.hashValue: .success(try! config.encode(1, 42)),
+            1.hashValue: .success(try! config.coder.encode(FileCache.Entry(key: 1, value: 42))),
             2.hashValue: .failure(Failure()),
         ]
 
@@ -184,8 +184,8 @@ final class FileCacheTests: XCTestCase {
         let cache = try FileCache(config: config)
 
         fileManager.onCreateFile = { _, data in
-            let (key, value) = try! config.decode(data!)
-            XCTAssertEqual([key: value], [1: 42])
+            let entry = try! config.coder.decode(FileCache<Int, Int>.Entry.self, from: data!)
+            XCTAssertEqual([entry.key: entry.value], [1: 42])
             expectation.fulfill()
             return true
         }
@@ -227,7 +227,7 @@ final class FileCacheTests: XCTestCase {
         fileManager.onContents = { url in
             XCTAssertEqual(Int(url.lastPathComponent)!, 1.hashValue)
             expectation.fulfill()
-            return try! config.encode(1, 42)
+            return try! config.coder.encode(FileCache.Entry(key: 1, value: 42))
         }
 
         // WHEN
@@ -250,7 +250,7 @@ final class FileCacheTests: XCTestCase {
         fileManager.onContents = { url in
             XCTAssertEqual(Int(url.lastPathComponent)!, 1.hashValue)
             expectation.fulfill()
-            return try! config.encode(1, 42)
+            return try! config.coder.encode(FileCache.Entry(key: 1, value: 42))
         }
 
         fileManager.onRemoveItem = { _ in }
@@ -275,7 +275,7 @@ final class FileCacheTests: XCTestCase {
 
         fileManager.onContents = { url in
             XCTAssertEqual(Int(url.lastPathComponent)!, 1.hashValue)
-            return try! config.encode(1, 42)
+            return try! config.coder.encode(FileCache.Entry(key: 1, value: 42))
         }
 
         fileManager.onFileExists = { _ in false }

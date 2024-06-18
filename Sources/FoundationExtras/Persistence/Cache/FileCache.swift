@@ -17,7 +17,12 @@ import Foundation
 /// cache. According to the availability of system resources, elements may be evicted from the cache
 /// at any time. The ``FileCache`` stores its files to the cache directory that is provided by the
 /// system.
-public final class FileCache<Key: Hashable & Codable, Value: Codable> {
+///
+/// ## Threading considerations
+///
+/// A `FileCache` is Sendable and safe to be used from any concurrent context. It's still a class,
+/// the thread-safeness is provided by the underlying filemanager.
+public final class FileCache<Key: Hashable & Codable & Sendable, Value: Codable & Sendable> {
     private let config: Config
 
     /// The unique id of the cache.
@@ -60,7 +65,8 @@ public final class FileCache<Key: Hashable & Codable, Value: Codable> {
         guard let data = self.config.fileManager.contents(atPath: url.path()) else {
             throw FileCacheFailure.missingFileForKey
         }
-        return try self.config.decode(data)
+        let entry = try self.config.coder.decode(Entry.self, from: data)
+        return (entry.key, entry.value)
     }
 
     private func makeCacheDirectoryIfRequired(id: UUID) throws {
@@ -120,7 +126,7 @@ extension FileCache: Cache {
     }
 
     public func insert(_ value: Value, forKey key: Key) throws {
-        let data = try config.encode(key, value)
+        let data = try config.coder.encode(Entry(key: key, value: value))
         let url = self.makeUrl(for: key)
 
         // Create cache folder if necessary
@@ -172,16 +178,13 @@ extension FileCache {
         }
     }
 
-    /// Configuration of the ``FileCache``
-    public struct Config {
+    /// Configuration of the ``FileCache``.
+    public struct Config: Sendable {
         /// Location where the cache should be placed on the file system.
         public let url: URL
 
-        /// Encoder to encode cache entry into `Data` object.
-        public let encode: (Key, Value) throws -> Data
-
-        /// Decoder to decode data object into cache entiry.
-        public let decode: (Data) throws -> (Key, Value)
+        /// Coder to encode/decode Key-Value pairs.
+        public let coder: AnyCoder<Data>
 
         /// A FileManager.
         public let fileManager: FileManager
@@ -191,26 +194,15 @@ extension FileCache {
         ///
         /// - Parameters:
         ///   - url: Location where the cache should be placed on the file system
-        ///   - encode: Encoder to encode cache entry into `Data` object
-        ///   - decode: Decoder to decode data object into cache entiry
+        ///   - coder: A coder that encodes into data and decodes from data.
         ///   - fileSystemAccessor: A file system accessor
         public init(
             url: URL = URL.cachesDirectory,
-            encode: ((Key, Value) throws -> Data)? = nil,
-            decode: ((Data) throws -> (Key, Value))? = nil,
-            fileManager: FileManager = .default
+            coder: AnyCoder<Data>? = nil,
+            fileManager: FileManager = FileManager()
         ) {
             self.url = url
-
-            self.encode = encode ?? { key, value in
-                try JSONEncoder().encode(Entry(key: key, value: value))
-            }
-
-            self.decode = decode ?? { data in
-                let entry = try JSONDecoder().decode(Entry.self, from: data)
-                return (entry.key, entry.value)
-            }
-
+            self.coder = JSONCoder().eraseToAnyCoder()
             self.fileManager = fileManager
         }
 

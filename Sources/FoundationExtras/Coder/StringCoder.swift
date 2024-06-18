@@ -14,7 +14,7 @@ public final class StringCoder: TypedCoder {
     public typealias Encoded = String
     public typealias Decoded = Data
 
-    private var encoding: String.Encoding
+    private let encoding: String.Encoding
 
     /// Creates a StringCoder that encodes/decodes data into/from String.
     /// - Parameter encoding: The encoding that should be used when encoding into `String` and that

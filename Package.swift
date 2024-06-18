@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -24,10 +24,13 @@ let package = Package(
             dependencies: [
                 .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency"),
             ]
         ),
         .target(
-            name: "TestExtras",
+            name: "MockExtras",
             dependencies: [
                 .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
                 .target(name: "FoundationExtras"),
@@ -37,13 +40,16 @@ let package = Package(
             name: "FoundationExtrasTests",
             dependencies: [
                 .target(name: "FoundationExtras"),
-                .target(name: "TestExtras"),
+                .target(name: "MockExtras"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency"),
             ]
         ),
         .testTarget(
-            name: "TestExtrasTests",
+            name: "MockExtrasTests",
             dependencies: [
-                .target(name: "TestExtras"),
+                .target(name: "MockExtras"),
             ]
         ),
     ]

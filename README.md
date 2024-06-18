@@ -23,6 +23,12 @@
 
 Useful extensions to the Foundation framework.
 
+## Dislaimer
+
+Do not rely on this package as a dependeny in your project. I try to keep breaking changes minimal
+but they may occur every now and then which might be undesired for your use-case. However feel free
+to use/copy anything you like.
+
 ## Overview
 
 This library comes with a couple of tools that are often needed during app development on Apple's
@@ -31,13 +37,15 @@ platforms. It extends various existing types and also introduces new tools for:
 - Caching
 - Persistence
 - Coding
+- Mapping
 
 ## Installation via SPM
 
-Add the following to you `Package.swift` description.
+Add the following to you `Package.swift` description. Replace `version` with the tag of the
+desired version listed in [Releases](https://github.com/pEEcor/swift-foundation-extras/releases).
 
 ```Swift
-.package(url: "git@github.com:pEEcor/swift-foundation-extras.git", from: "0.1.2")
+.package(url: "git@github.com:pEEcor/swift-foundation-extras.git", from: "version")
 ```
 
 The exposed library is named `FoundationExtras`.

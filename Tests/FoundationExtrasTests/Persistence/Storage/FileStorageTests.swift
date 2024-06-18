@@ -6,8 +6,10 @@
 
 import Foundation
 import FoundationExtras
-import TestExtras
+import MockExtras
 import XCTest
+
+// MARK: - FileStorageTests
 
 final class FileStorageTests: XCTestCase {
     func testInit_setConfig() {
@@ -101,10 +103,10 @@ final class FileStorageTests: XCTestCase {
             XCTAssertEqual(error as! FileStorageFailure, .writeFailure)
         }
     }
- 
+
     func testInsert_createStorageDirectory_whenNotPresent() throws {
         let expectation = expectation(description: "create-directory")
-        
+
         // GIVEN
         let fileManager = MockFileManager()
         let config = FileStorage<Int, Int>.Config(fileManager: fileManager)
@@ -112,10 +114,10 @@ final class FileStorageTests: XCTestCase {
 
         // WHEN
         fileManager.onFileExists = { _ in false }
-        fileManager.onCreateFile = { _,_ in true }
+        fileManager.onCreateFile = { _, _ in true }
         fileManager.onCreateDirectory = { _ in expectation.fulfill() }
         try storage.insert(value: 1, for: 42)
-        
+
         // THEN
         wait(for: [expectation], timeout: 0.5)
     }
@@ -205,11 +207,13 @@ final class FileStorageTests: XCTestCase {
     }
 }
 
+// MARK: - FileStorageConfigTests
+
 final class FileStorageConfigTests: XCTestCase {
     func testDefault_createDefaultConfiguration() {
         // GIVEN / WHEN
         let sut = FileStorage<Int, Int>.Config.default
-        
+
         // THEN
         XCTAssertEqual(sut.url, URL.documentsDirectory)
     }

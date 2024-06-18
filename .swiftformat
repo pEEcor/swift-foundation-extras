@@ -132,7 +132,6 @@
 --enable extensionAccessControl
 --enable fileHeader
 --enable genericExtensions
---enable hoistAwait
 --enable hoistPatternLet
 --enable hoistTry
 --enable indent
@@ -200,3 +199,8 @@
 # redundantReturn
 # strongOutlets
 # wrapSwitchCases
+
+# The rule clashes with async autoclosure parameters. If an expression is passed without closure
+# braces, the await keyword will be hoisted even though it is stricly required.
+# hoistAwait
+

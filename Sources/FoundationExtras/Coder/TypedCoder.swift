@@ -14,7 +14,7 @@ import Foundation
 /// The protocol allows to specify various coders for encoding and decoding operations. Since both
 /// the `Encoded` and `Decoded` type are managed by the protocol, custom coders can be implemented
 /// and chained together.
-public protocol TypedCoder<Encoded, Decoded> {
+public protocol TypedCoder<Encoded, Decoded>: Sendable {
     /// The type that is produced by the encode operation and that is fed into the decode operation.
     associatedtype Encoded
 
@@ -37,17 +37,17 @@ public protocol TypedCoder<Encoded, Decoded> {
 // MARK: - AnyTypedCoder
 
 /// A type-erasing wrapper for typed coders.
-public class AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
-    private let onEncode: (Decoded) throws -> Encoded
-    private let onDecode: (Encoded) throws -> Decoded
+public final class AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
+    private let onEncode: @Sendable (Decoded) throws -> Encoded
+    private let onDecode: @Sendable (Encoded) throws -> Decoded
 
     /// Creates a type-erasing wrapper for typed coders.
     /// - Parameters:
     ///   - encode: The encoding operation.
     ///   - decode: The decoding operation.
     public init(
-        encode: @escaping (Decoded) throws -> Encoded,
-        decode: @escaping (Encoded) throws -> Decoded
+        encode: @escaping @Sendable (Decoded) throws -> Encoded,
+        decode: @escaping @Sendable (Encoded) throws -> Decoded
     ) {
         self.onEncode = encode
         self.onDecode = decode
@@ -65,7 +65,7 @@ public class AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
     ///
     /// - Parameter coder: The typed coder.
     public convenience init(coder: any TypedCoder<Encoded, Decoded>) {
-        self.init(encode: coder.encode, decode: coder.decode)
+        self.init(encode: { try coder.encode($0) }, decode: { try coder.decode(from: $0) })
     }
 
     /// Creates a type-erasing wrapper around any other non-typed coder.

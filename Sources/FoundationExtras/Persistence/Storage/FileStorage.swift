@@ -14,7 +14,12 @@ import Foundation
 ///
 /// > Tip: If storage of multiple types is required, transform your values to a uniform type before
 /// storing them, i.e. `Data`.
-public class FileStorage<Key: Codable & Hashable, Value: Codable> {
+///
+/// ## Threading considerations
+///
+/// A `FileStorage` is Sendable and safe to be used from any concurrent context. It's still a class,
+/// the thread-safeness is provided by the underlying filemanager.
+public final class FileStorage<Key: Codable & Hashable & Sendable, Value: Codable & Sendable> {
     /// The configuration of the file storage.
     public let config: Config
 
@@ -139,17 +144,17 @@ extension FileStorage: Storage {
 // MARK: FileStorage.Config
 
 extension FileStorage {
-    public struct Config {
+    public struct Config: Sendable {
         /// The url to use for file storage.
         public let url: URL
 
         /// A FileManager that handles all access to the filesystem.
         let fileManager: FileManager
 
-        /// The coder that is used to transform the values for storage.
+        /// The coder that is used to transform the keys for storage.
         let keyCoder: AnyTypedCoder<String, Key>
 
-        /// The coder that is used to transform the keys for storage.
+        /// The coder that is used to transform the values for storage.
         let valueCoder: AnyCoder<Data>
 
         // MARK: - Init
