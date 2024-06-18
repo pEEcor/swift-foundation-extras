@@ -9,16 +9,16 @@ import Foundation
 // MARK: - Cache
 
 /// A generic cache protocol.
-public protocol Cache<Key, Value> {
+public protocol Cache<Key, Value>: Sendable {
     associatedtype Key: Hashable
     associatedtype Value
 
     /// The entire content of the cache. Be carefull when using this. The concrete implementation
     /// might take a lot of time when accessing all elements of a cache.
-    var content: [Key: Value] { get }
+    var content: [Key: Value] { get async }
 
     /// Clears the cache.
-    func clear()
+    func clear() async
 
     /// Adds a new element for the given key to the cache.
     ///
@@ -28,16 +28,16 @@ public protocol Cache<Key, Value> {
     /// - Parameters:
     ///   - value: Value that should be stored.
     ///   - forKey: Key
-    func insert(_ value: Value, forKey: Key) throws
+    func insert(_ value: Value, forKey: Key) async throws
 
     /// Returns the value for the given key if the cache contains a value for the key.
     ///
     /// - Parameter forKey: Key
     /// - Returns: Optional value, that contains value or nil if not found in cache.
-    func value(forKey: Key) throws -> Value
+    func value(forKey: Key) async throws -> Value
 
     /// Removes the value of the given key from the cache.
     ///
     /// - Parameter forKey: Key
-    func remove(forKey: Key) throws -> Value
+    func remove(forKey: Key) async throws -> Value
 }

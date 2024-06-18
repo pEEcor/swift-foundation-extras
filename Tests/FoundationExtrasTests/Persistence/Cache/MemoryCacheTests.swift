@@ -10,7 +10,7 @@ import XCTest
 final class MemoryCacheTests: XCTestCase {
     func testInit_createEmptyCache_whenNoValuesAreProvided() throws {
         // GIVEN / WHEN
-        let cache: any Cache<Int, Int> = MemoryCache()
+        let cache: MemoryCache<Int, Int> = MemoryCache()
 
         // THEN
         XCTAssertEqual(cache.content, [:])
@@ -51,10 +51,10 @@ final class MemoryCacheTests: XCTestCase {
 
     func testInsert_insertKeyValuePairIntoCache() throws {
         // GIVEN
-        let cache: any Cache<Int, Int> = MemoryCache()
+        let cache: MemoryCache<Int, Int> = MemoryCache()
 
         // WHEN
-        try cache.insert(42, forKey: 1)
+        cache.insert(42, forKey: 1)
 
         // THEN
         XCTAssertEqual(cache.content, [1: 42])
