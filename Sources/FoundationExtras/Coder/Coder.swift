@@ -5,6 +5,7 @@
 //
 
 import Combine
+import ConcurrencyExtras
 import Foundation
 
 // MARK: - Coder
@@ -13,31 +14,34 @@ import Foundation
 ///
 /// The generic argument of the protocol declares the type that a coder's encode operation will
 /// produce when encoding a value. Thus this is also the type that is fed into the decode operation.
-public protocol Coder<Output>: TopLevelEncoder, TopLevelDecoder
-    where Self.Input == Self.Output, Self.Output == Self.Output
+public protocol Coder<Value>: TopLevelEncoder, TopLevelDecoder, Sendable
+    where Self.Input == Self.Value, Self.Output == Self.Value
 {
-    associatedtype Output
+    associatedtype Value: Sendable
 }
 
 // MARK: - AnyCoder
 
 /// Type-erasing wrapper for Coders.
-public class AnyCoder<Output>: Coder {
+public struct AnyCoder<Value: Sendable>: Coder {
     /// The embedded coder that handles the actual coding.
-    private let coder: any Coder<Output>
+    private let coder: LockIsolated<any Coder<Value>>
 
     /// Creates a type-erased Coder from any other coder.
     /// - Parameter coder: The type-erased coder.
-    public init(coder: any Coder<Output>) {
-        self.coder = coder
+    public init(coder: any Coder<Value>) {
+        self.coder = LockIsolated(coder)
     }
 
-    public func encode<T>(_ value: T) throws -> Output where T: Encodable {
-        try self.coder.encode(value)
+    public func encode<T: Sendable>(_ value: T) throws -> Value where T: Encodable {
+        try self.coder.withValue { try $0.encode(value) }
     }
 
-    public func decode<T>(_ type: T.Type, from value: Output) throws -> T where T: Decodable {
-        try self.coder.decode(type, from: value)
+    public func decode<T: Sendable>(
+        _ type: T.Type,
+        from value: Value
+    ) throws -> T where T: Decodable {
+        try self.coder.withValue { try $0.decode(type, from: value) }
     }
 }
 
@@ -45,7 +49,7 @@ extension Coder {
     /// Erases the concrete type of the given coder.
     ///
     /// - Returns: A type-erased coder.
-    public func eraseToAnyCoder() -> AnyCoder<Output> {
+    public func eraseToAnyCoder() -> AnyCoder<Value> {
         AnyCoder(coder: self)
     }
 
@@ -58,7 +62,7 @@ extension Coder {
     /// - Returns: A type coder that encodes form und decodes into the given type.
     public func typed<T>(
         to type: T.Type
-    ) -> AnyTypedCoder<Output, T> where T: Codable {
+    ) -> AnyTypedCoder<Value, T> where T: Codable {
         AnyTypedCoder(coder: self, type: type)
     }
 }
