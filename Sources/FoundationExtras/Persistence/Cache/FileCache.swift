@@ -182,7 +182,7 @@ extension FileCache {
     public struct Config: Sendable {
         /// Location where the cache should be placed on the file system.
         public let url: URL
-        
+
         /// Coder to encode/decode Key-Value pairs.
         public let coder: AnyCoder<Data>
 

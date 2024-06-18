@@ -4,9 +4,9 @@
 //  Copyright © 2024 Paavo Becker.
 //
 
-@testable import FoundationExtras
 import MockExtras
 import XCTest
+@testable import FoundationExtras
 
 final class FileCacheTests: XCTestCase {
     func testInit_shouldCreateCacheDirectory_whenNotPresent() throws {
@@ -62,7 +62,7 @@ final class FileCacheTests: XCTestCase {
 
         fileManager.onFileExists = { _ in true }
         fileManager.onCreateFile = { _, data in
-            let entry = try! config.coder.decode(FileCache<Int, Int>.Entry.self, from: XCTUnwrap(data))
+            let entry = try! config.coder.decode(FileCache<Int, Int>.Entry.self, from: data!)
             XCTAssertEqual(entry.key, 1)
             XCTAssertEqual(entry.value, 42)
             expectation.fulfill()

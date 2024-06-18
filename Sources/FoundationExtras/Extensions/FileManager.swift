@@ -6,6 +6,8 @@
 
 import Foundation
 
+// MARK: - FileManager + Sendable
+
 /// Apple mentions the filemanager to be thread safe in the documentation.
 extension FileManager: @unchecked Sendable {}
 

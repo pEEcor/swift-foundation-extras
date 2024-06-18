@@ -4,8 +4,8 @@
 //  Copyright © 2023 Paavo Becker.
 //
 
-import Foundation
 import ConcurrencyExtras
+import Foundation
 
 // MARK: - NSCache + Sendable
 
@@ -125,7 +125,7 @@ extension MemoryCache {
             guard let entry = object as? Entry else {
                 return
             }
-            
+
             let key = entry.key
 
             self.keys.withValue { _ = $0.remove(key) }
