@@ -41,6 +41,9 @@ let package = Package(
             dependencies: [
                 .target(name: "FoundationExtras"),
                 .target(name: "MockExtras"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency"),
             ]
         ),
         .testTarget(
