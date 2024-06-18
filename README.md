@@ -23,6 +23,12 @@
 
 Useful extensions to the Foundation framework.
 
+## Dislaimer
+
+Do not rely on this package as a dependeny in your project. I try to keep breaking changes minimal
+but they may occur every now and then which might be undesired for your use-case. However feel free
+to use/copy anything you like.
+
 ## Overview
 
 This library comes with a couple of tools that are often needed during app development on Apple's
