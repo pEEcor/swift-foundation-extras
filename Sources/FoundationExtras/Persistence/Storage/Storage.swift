@@ -13,7 +13,7 @@ import Foundation
 /// An implementor is responsible for storing one specific type. If the storage container should
 /// store non-homogenous values, use a type erasing wrapper as the storages type. The type erasing
 /// wrapper is then repsponsible to implement the codable conformance for its wrapped values.
-public protocol Storage<Key, Value> {
+public protocol Storage<Key, Value>: Sendable {
     associatedtype Key: Hashable & Sendable
     associatedtype Value: Sendable
 
