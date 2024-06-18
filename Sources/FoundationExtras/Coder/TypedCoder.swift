@@ -37,7 +37,7 @@ public protocol TypedCoder<Encoded, Decoded>: Sendable {
 // MARK: - AnyTypedCoder
 
 /// A type-erasing wrapper for typed coders.
-public struct AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
+public final class AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
     private let onEncode: @Sendable (Decoded) throws -> Encoded
     private let onDecode: @Sendable (Encoded) throws -> Decoded
 
@@ -64,7 +64,7 @@ public struct AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
     /// Creates a type-erasing wrapper around any other typed coder.
     ///
     /// - Parameter coder: The typed coder.
-    public init(coder: any TypedCoder<Encoded, Decoded>) {
+    public convenience init(coder: any TypedCoder<Encoded, Decoded>) {
         self.init(encode: { try coder.encode($0) }, decode: { try coder.decode(from: $0) })
     }
 
@@ -73,7 +73,7 @@ public struct AnyTypedCoder<Encoded, Decoded: Codable>: TypedCoder {
     /// - Parameters:
     ///   - coder: The non-typed coder.
     ///   - type: The type that should be used to constrain the non-typed coder's input.
-    public init(coder: any Coder<Encoded>, type: Decoded.Type) {
+    public convenience init(coder: any Coder<Encoded>, type: Decoded.Type) {
         self.init(
             encode: { try coder.encode($0) },
             decode: { try coder.decode(type, from: $0) }
