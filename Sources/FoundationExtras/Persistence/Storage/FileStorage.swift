@@ -139,17 +139,17 @@ extension FileStorage: Storage {
 // MARK: FileStorage.Config
 
 extension FileStorage {
-    public struct Config {
+    public struct Config: Sendable {
         /// The url to use for file storage.
         public let url: URL
 
         /// A FileManager that handles all access to the filesystem.
         let fileManager: FileManager
 
-        /// The coder that is used to transform the values for storage.
+        /// The coder that is used to transform the keys for storage.
         let keyCoder: AnyTypedCoder<String, Key>
 
-        /// The coder that is used to transform the keys for storage.
+        /// The coder that is used to transform the values for storage.
         let valueCoder: AnyCoder<Data>
 
         // MARK: - Init

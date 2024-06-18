@@ -173,8 +173,8 @@ extension FileCache {
         }
     }
 
-    /// Configuration of the ``FileCache``
-    public struct Config {
+    /// Configuration of the ``FileCache``.
+    public struct Config: Sendable {
         /// Location where the cache should be placed on the file system.
         public let url: URL
         
@@ -194,7 +194,7 @@ extension FileCache {
         public init(
             url: URL = URL.cachesDirectory,
             coder: AnyCoder<Data>? = nil,
-            fileManager: FileManager = .default
+            fileManager: FileManager = FileManager()
         ) {
             self.url = url
             self.coder = JSONCoder().eraseToAnyCoder()
