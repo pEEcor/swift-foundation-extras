@@ -14,6 +14,11 @@ import Foundation
 ///
 /// > Tip: If storage of multiple types is required, transform your values to a uniform type before
 /// storing them, i.e. `Data`.
+///
+/// ## Threading considerations
+///
+/// A `FileStorage` is Sendable and safe to be used from any concurrent context. It's still a class,
+/// the thread-safeness is provided by the underlying filemanager.
 public final class FileStorage<Key: Codable & Hashable & Sendable, Value: Codable & Sendable> {
     /// The configuration of the file storage.
     public let config: Config

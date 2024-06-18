@@ -23,6 +23,11 @@ extension NSCache: @unchecked Sendable {}
 /// - Important: The ``MemoryCache`` does not give any guarantee about the duration of element
 /// storage inside the cache. According to the availability of system resources, elements may be
 /// evicted from the cache at any time.
+///
+/// ## Threading considerations
+///
+/// A `MemoryCache` is Sendable and safe to be used from any concurrent context. It's still a class,
+/// the thread-safeness is provided by the underlying filemanager.
 public final class MemoryCache<Key: Hashable & Sendable, Value: Sendable> {
     private let cache: NSCache<WrappedKey, Entry>
     private let keyTracker: KeyTracker

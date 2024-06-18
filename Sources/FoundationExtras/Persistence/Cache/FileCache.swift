@@ -17,6 +17,11 @@ import Foundation
 /// cache. According to the availability of system resources, elements may be evicted from the cache
 /// at any time. The ``FileCache`` stores its files to the cache directory that is provided by the
 /// system.
+///
+/// ## Threading considerations
+///
+/// A `FileCache` is Sendable and safe to be used from any concurrent context. It's still a class,
+/// the thread-safeness is provided by the underlying filemanager.
 public final class FileCache<Key: Hashable & Codable & Sendable, Value: Codable & Sendable> {
     private let config: Config
 

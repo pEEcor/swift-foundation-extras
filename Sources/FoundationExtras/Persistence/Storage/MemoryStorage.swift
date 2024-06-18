@@ -14,6 +14,11 @@ import Foundation
 /// This storage can be used when data should be cleared between cold launches of an appliction
 /// automatically. Use with caution when storing big values, since the entire content of the
 /// storage is kept in memory.
+///
+/// ## Threading considerations
+///
+/// A `MemoryStorage` is Sendable since it is an actor and therefore safe to be used from any
+/// concurrent context.
 public final actor MemoryStorage<Key: Hashable & Sendable, Value: Sendable> {
     /// The dictionary that holds all key-value pairs that get inserted into the storage.
     private var storage: [Key: Value]
